@@ -1,6 +1,5 @@
 package com.msafonov.swimresults.data.model
 
-import com.msafonov.swimresults.log
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -12,10 +11,11 @@ data class TimeComponents(
     val milliseconds: Long
 ) {
     override fun toString(): String {
-        val msecs = if (milliseconds > 100L) milliseconds.toString().substring(1) else milliseconds.toString()
+        val msecs = if (milliseconds > 100L) milliseconds.toString()
+            .substring(1) else milliseconds.toString()
         val minutes = if (minutes > 0L) "$minutes мин, " else ""
-        val seconds = if (seconds > 0L) "$seconds сек, " else ""
-        val ms = if (milliseconds > 0L) "$msecs сотых" else ""
+        val seconds = if (seconds > 0L) "$seconds сек, " else "0 сек"
+        val ms = if (milliseconds > 0L) "$msecs сот" else "0 сот"
         return "$minutes$seconds$ms"
     }
 
@@ -28,39 +28,16 @@ data class TimeComponents(
             return TimeComponents(minutes.toLong(), seconds.toLong(), milliSeconds.toLong())
         }
 
-        fun TimeComponents.toDuration(): Duration {
-            val minutes = if (this.minutes > 0L) this.minutes.minutes else null
-            log(
-                "checkResultsFunc",
-                ".toDuration: $this ${this.minutes.minutes} ${this.seconds.seconds} ${this.milliseconds.milliseconds}"
-            )
-            return if (this.minutes > 0L) {
+        fun TimeComponents.toDuration(): Duration =
+           if (this.minutes > 0L) {
                 this.minutes.minutes + this.seconds.seconds + this.milliseconds.milliseconds
-            }
-            else this.seconds.seconds + this.milliseconds.milliseconds
-        }
+            } else this.seconds.seconds + this.milliseconds.milliseconds
 
-        fun durationToComponents(duration: Duration): TimeComponents {
-//            val totalSeconds = duration.inWholeSeconds
-//            val minutes = totalSeconds / 60
-//            val seconds = totalSeconds % 60
-            val nanos = duration.inWholeMilliseconds % 1_000
-
-            val min = duration.inWholeMinutes
-            val sec = duration.inWholeSeconds % 60
-            val ms = (duration.inWholeMilliseconds % 1000)
-
-            log("final", "$min $sec $ms")
-
-            val result = duration.toComponents { minutes, seconds, nanoseconds ->
-                log("checkResultsFunc", "nanos $nanos  ${duration.inWholeSeconds}")
-                TimeComponents(minutes, seconds.toLong(), (nanoseconds % 1_000_000).toLong())
-            }
-
-//            val result = TimeComponents(minutes, seconds, nanoseconds)
-            log("checkResultsFunc", "durationToComponents:${duration.absoluteValue} $result ")
-            return TimeComponents(min, sec, ms)
-        }
+        fun durationToComponents(duration: Duration) = TimeComponents(
+            minutes = duration.inWholeMinutes,
+            seconds = duration.inWholeSeconds % 60,
+            milliseconds = duration.inWholeMilliseconds % 1000
+        )
 
         fun calculateDiff(time1: TimeComponents, time2: TimeComponents): TimeComponents {
             val duration1 = time1.toDuration()

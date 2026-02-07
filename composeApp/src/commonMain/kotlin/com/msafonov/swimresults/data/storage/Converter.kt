@@ -17,7 +17,12 @@ object Converter {
 
     fun parseFromText(text: String): List<SwimEvent> {
         val events = mutableListOf<SwimEvent>()
-        val lines = text.replace(',', ' ').split("\\s+".toRegex()).chunked(11)
+        val lines = text
+            .replace(',', ' ')
+            .replace("на", " ")
+            .replace("стиль", " ")
+            .replace("плавание", " ")
+            .split("\\s+".toRegex()).chunked(11)
 
         lines.forEach { line ->
             parseLine(line)?.let { events.add(it) }
@@ -30,19 +35,22 @@ object Converter {
         if (line.size < SwimmingRank.entries.size) return null
 
         val distance = line[0].toIntOrNull() ?: return null
-        val style = when (line[1].lowercase()) {
-            "баттерфляй" -> SwimStyle.BUTTERFLY
-            "брасс" -> SwimStyle.BREASTSTROKE
-            "вольный" -> SwimStyle.FREESTYLE
-            "спина" -> SwimStyle.BACKSTROKE
-            "комплекс" -> SwimStyle.MEDLEY
-            else -> return null
+        val style = with (line[1].lowercase()) {
+            when {
+                contains("баттерф") -> SwimStyle.BUTTERFLY
+                contains("брасс") -> SwimStyle.BREASTSTROKE
+                contains("вольн") -> SwimStyle.FREESTYLE
+                contains("спин") -> SwimStyle.BACKSTROKE
+                contains("комплекс") -> SwimStyle.MEDLEY
+                else -> return null
+            }
+
         }
 
         val times = mutableMapOf<Duration, SwimmingRank>().apply {
             put(TimeComponents.from(line[2]).toDuration(), SwimmingRank.ThirdJunior)
             put(TimeComponents.from(line[3]).toDuration(), SwimmingRank.SecondJunior)
-            put(TimeComponents.from(line[4]).toDuration(), SwimmingRank.First)
+            put(TimeComponents.from(line[4]).toDuration(), SwimmingRank.FirstJunior)
             put(TimeComponents.from(line[5]).toDuration(), SwimmingRank.Third)
             put(TimeComponents.from(line[6]).toDuration(), SwimmingRank.Second)
             put(TimeComponents.from(line[7]).toDuration(), SwimmingRank.First)

@@ -34,7 +34,7 @@ fun SwimmingStyles(modifier: Modifier = Modifier, viewModel: CheckResultViewMode
                         onClick = { viewModel.setSwimStyle(style) },
                         role = Role.RadioButton
                     )
-                    .padding(horizontal = 16.dp),
+                    .padding(start = 70.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RadioButton(

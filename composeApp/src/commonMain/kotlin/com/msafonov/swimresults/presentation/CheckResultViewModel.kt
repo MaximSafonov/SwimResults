@@ -3,6 +3,7 @@ package com.msafonov.swimresults.presentation
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import com.msafonov.swimresults.data.model.CheckedResult
 import com.msafonov.swimresults.data.model.Constants
 import com.msafonov.swimresults.data.model.PoolType
 import com.msafonov.swimresults.data.model.SwimStyle
@@ -119,7 +120,9 @@ class CheckResultViewModel {
                 if (swimmer.value == Swimmer.Women) RankTable.longWaterWomen
                 else RankTable.longWaterMen
             }
-        }
+        }.firstOrNull {
+                it.distance == distance.value && it.style == swimStyle.value
+        }?.results ?: return
 
         val checkedValue = TimeComponents(
             minutes = minutes.toComponent(),
@@ -127,41 +130,39 @@ class CheckResultViewModel {
             milliseconds = milliseconds.toComponent(),
         )
 
-        val swimEvent =
-            table.firstOrNull {
-                it.distance == distance.value && it.style == swimStyle.value
-            }?.results?.findKeyNearestToValue(checkedValue.toDuration())
-
-        val next = swimEvent?.second?.second?.let {
-            TimeComponents.calculateDiff(
-                TimeComponents.durationToComponents(it), checkedValue
-            )
-        }?.toString() ?: "ТЫ ПРОСТО КОСМОС"
-
-        _result.value =
-            "Твой разряд: ${swimEvent?.first?.text ?: "не айс чета"} \nМолодец, так держать =)\n\nДо следующего разряда:\n$next"
-
+        _result.value = table.checkResult(checkedValue)
     }
 
-    fun Map<Duration, SwimmingRank>.findKeyNearestToValue(targetValue: Duration): Pair<SwimmingRank?, Pair<SwimmingRank?, Duration?>>? {
+    fun Map<Duration, SwimmingRank>.checkResult(targetValue: TimeComponents): CheckedResult? {
         return try {
             val sortedSet = this.keys.toSet()
-            val smaller = sortedSet.filter { it < targetValue }.maxOrNull()
-            val larger = sortedSet.filter { it >= targetValue }.minOrNull()
-            Pair(
-                larger?.let { this.getValue(it) },
-                Pair(smaller?.let { this.getValue(it) }, smaller)
+            val nextRank = sortedSet.filter { it < targetValue.toDuration() }.maxOrNull()
+            val currentRank = sortedSet.filter { it >= targetValue.toDuration() }.minOrNull()
+
+            CheckedResult(
+                currentRank = currentRank?.let { this.getValue(it) },
+                nextRank = nextRank?.let { this.getValue(it) },
+                toNextRank = nextRank?.let {
+                    TimeComponents.calculateDiff(
+                        TimeComponents.durationToComponents(it), targetValue)
+                },
+                toPreviousRank = currentRank?.let {
+                    TimeComponents.calculateDiff(
+                        TimeComponents.durationToComponents(it), targetValue)
+                },
             )
+
+
         } catch (e: Exception) {
             return null
         }
     }
 
-
-    private val _result = MutableStateFlow("")
+    private val _result = MutableStateFlow<CheckedResult?>(null)
     val result = _result.asStateFlow()
 
     fun String.toComponent() = this.toLongOrNull() ?: 0L
+
 
 
 }

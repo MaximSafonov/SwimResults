@@ -1,7 +1,6 @@
 package com.msafonov.swimresults.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,9 +12,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SelectableChipColors
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -26,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,16 +29,9 @@ import com.msafonov.swimresults.data.model.PoolType
 import com.msafonov.swimresults.data.model.Swimmer
 import com.msafonov.swimresults.presentation.CheckResultViewModel
 import com.msafonov.swimresults.ui.composable.DistanceMenu
+import com.msafonov.swimresults.ui.composable.ResultDialog
 import com.msafonov.swimresults.ui.composable.ResultUnput
 import com.msafonov.swimresults.ui.composable.SwimmingStyles
-import com.msafonov.swimresults.ui.composable.SwitchTheme
-import com.msafonov.swimresults.ui.theme.DarkBlue20
-import com.msafonov.swimresults.ui.theme.DarkBlue40
-import com.msafonov.swimresults.ui.theme.DarkBlue80
-import com.msafonov.swimresults.ui.theme.DarkBlue90
-import com.msafonov.swimresults.ui.theme.Red40
-import com.msafonov.swimresults.ui.theme.Red80
-import com.msafonov.swimresults.ui.theme.Red90
 import com.msafonov.swimresults.ui.theme.SwimRankTheme
 import com.msafonov.swimresults.ui.theme.chipColors
 
@@ -52,15 +40,21 @@ import com.msafonov.swimresults.ui.theme.chipColors
 fun CheckResultScreen() {
     val viewModel = CheckResultViewModel()
 
-    SwimRankTheme() {
-        var showContent by remember { mutableStateOf(false) }
+
+
+    SwimRankTheme {
+        var showResult by remember { mutableStateOf(false) }
         var isContentShown by remember { mutableStateOf(false) }
+
+
 
         val poolType by viewModel.poolType.collectAsState()
         val swimmer by viewModel.swimmer.collectAsState()
         val distance by viewModel.distance.collectAsState()
         val distanceList by viewModel.distanceList.collectAsState(emptyList())
-        val result by viewModel.result.collectAsState()
+        val result = viewModel.result.collectAsState()
+
+
 
         Column(
             modifier = Modifier
@@ -156,20 +150,7 @@ fun CheckResultScreen() {
 
             SwimmingStyles(viewModel = viewModel)
             VerticalDivider(modifier = Modifier.size(2.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 2.dp),
-            ) {
-                Text(
-                    textAlign = TextAlign.Center,
-                    text = "Дистанция"
-                )
-                DistanceMenu(distanceList, viewModel)
-                Text(
-                    textAlign = TextAlign.Center,
-                    text = "$distance"
-                )
-            }
+            DistanceMenu(distanceList, viewModel, distance)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(vertical = 2.dp),
@@ -181,24 +162,16 @@ fun CheckResultScreen() {
             }
 
             Button(onClick = {
-                showContent = !showContent
+                showResult = !showResult
                 viewModel.checkResult()
-                if (!isContentShown) isContentShown = true
-                else showContent = !showContent
             }) {
                 Text("Проверить результат")
             }
-            AnimatedVisibility(showContent) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-
-                    Text(
-                        textAlign = TextAlign.Center,
-                        text = result
-                    )
-                }
+            AnimatedVisibility(showResult) {
+                ResultDialog(
+                    onConfirmation = { showResult = !showResult },
+                    result = result.value
+                )
             }
         }
     }
