@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import com.msafonov.swimresults.data.model.CheckedResult
 import com.msafonov.swimresults.data.model.Constants
 import com.msafonov.swimresults.data.model.PoolType
+import com.msafonov.swimresults.data.model.SwimEvent
 import com.msafonov.swimresults.data.model.SwimStyle
 import com.msafonov.swimresults.data.model.Swimmer
 import com.msafonov.swimresults.data.model.SwimmingRank
@@ -17,12 +18,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlin.time.Duration
 
 class CheckResultViewModel {
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val _result = MutableStateFlow<CheckedResult?>(null)
+    val result = _result.asStateFlow()
+
+
     var isDarkTheme: MutableStateFlow<Boolean> = MutableStateFlow(false)
     fun updateTheme(input: Boolean) {
         isDarkTheme.value = input
@@ -63,6 +71,12 @@ class CheckResultViewModel {
         _swimmer.value = swimmer
     }
 
+    private val _distance = MutableStateFlow(Constants.COMMON_LIST.first())
+    val distance = _distance.asStateFlow()
+    fun setDistance(distance: Int) {
+        _distance.value = distance
+    }
+
     private val _swimStyle = MutableStateFlow<SwimStyle>(SwimStyle.FREESTYLE)
     val swimStyle = _swimStyle.asStateFlow()
 
@@ -91,6 +105,31 @@ class CheckResultViewModel {
         }
     }
 
+    val eventTable: StateFlow<List<SwimEvent>> = combine(
+        poolType,
+        swimmer
+    ) { pool, swimmer ->
+        when (pool) {
+            PoolType.Short -> {
+                if (swimmer == Swimmer.Women) RankTable.shortWaterWomen
+                else RankTable.shortWaterMen
+            }
+
+            PoolType.Long -> {
+                if (swimmer == Swimmer.Women) RankTable.longWaterWomen
+                else RankTable.longWaterMen
+            }
+        }
+    }.stateIn(scope, SharingStarted.Eagerly, RankTable.shortWaterWomen)
+
+    val currentEvent: StateFlow<SwimEvent?> = combine(
+        eventTable,
+        distance,
+        swimStyle,
+    ) { table, distance, style ->
+        table.firstOrNull { it.distance == distance && it.style == style }
+    }.stateIn(scope, SharingStarted.Eagerly, null)
+
     val distanceList: Flow<List<Int>> = combine(swimStyle, poolType) { style, pool ->
         when (style) {
             SwimStyle.FREESTYLE -> Constants.FREESTYLE_LIST
@@ -98,30 +137,13 @@ class CheckResultViewModel {
                 if (pool == PoolType.Short) Constants.MEDLEY_LIST_SHORT
                 else Constants.MEDLEY_LIST_LONG
             }
-
             else -> Constants.COMMON_LIST
         }
     }
 
-    private val _distance = MutableStateFlow(Constants.COMMON_LIST.first())
-    val distance = _distance.asStateFlow()
-    fun setDistance(distance: Int) {
-        _distance.value = distance
-    }
-
     fun checkResult() {
-        val table = when (poolType.value) {
-            PoolType.Short -> {
-                if (swimmer.value == Swimmer.Women) RankTable.shortWaterWomen
-                else RankTable.shortWaterMen
-            }
-
-            PoolType.Long -> {
-                if (swimmer.value == Swimmer.Women) RankTable.longWaterWomen
-                else RankTable.longWaterMen
-            }
-        }.firstOrNull {
-                it.distance == distance.value && it.style == swimStyle.value
+        val table = eventTable.value.firstOrNull {
+            it.distance == distance.value && it.style == swimStyle.value
         }?.results ?: return
 
         val checkedValue = TimeComponents(
@@ -144,25 +166,21 @@ class CheckResultViewModel {
                 nextRank = nextRank?.let { this.getValue(it) },
                 toNextRank = nextRank?.let {
                     TimeComponents.calculateDiff(
-                        TimeComponents.durationToComponents(it), targetValue)
+                        TimeComponents.durationToComponents(it), targetValue
+                    )
                 },
                 toPreviousRank = currentRank?.let {
                     TimeComponents.calculateDiff(
-                        TimeComponents.durationToComponents(it), targetValue)
+                        TimeComponents.durationToComponents(it), targetValue
+                    )
                 },
             )
-
 
         } catch (e: Exception) {
             return null
         }
     }
 
-    private val _result = MutableStateFlow<CheckedResult?>(null)
-    val result = _result.asStateFlow()
-
     fun String.toComponent() = this.toLongOrNull() ?: 0L
-
-
 
 }

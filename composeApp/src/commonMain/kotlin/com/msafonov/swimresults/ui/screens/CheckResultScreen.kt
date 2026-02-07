@@ -29,6 +29,7 @@ import com.msafonov.swimresults.data.model.PoolType
 import com.msafonov.swimresults.data.model.Swimmer
 import com.msafonov.swimresults.presentation.CheckResultViewModel
 import com.msafonov.swimresults.ui.composable.DistanceMenu
+import com.msafonov.swimresults.ui.composable.RankListDialog
 import com.msafonov.swimresults.ui.composable.ResultDialog
 import com.msafonov.swimresults.ui.composable.ResultUnput
 import com.msafonov.swimresults.ui.composable.SwimmingStyles
@@ -44,7 +45,7 @@ fun CheckResultScreen() {
 
     SwimRankTheme {
         var showResult by remember { mutableStateOf(false) }
-        var isContentShown by remember { mutableStateOf(false) }
+        var showAll by remember { mutableStateOf(false) }
 
 
 
@@ -53,6 +54,7 @@ fun CheckResultScreen() {
         val distance by viewModel.distance.collectAsState()
         val distanceList by viewModel.distanceList.collectAsState(emptyList())
         val result = viewModel.result.collectAsState()
+        val event = viewModel.currentEvent.collectAsState()
 
 
 
@@ -172,6 +174,22 @@ fun CheckResultScreen() {
                     onConfirmation = { showResult = !showResult },
                     result = result.value
                 )
+            }
+
+            Button(onClick = {
+                showAll = !showAll
+            }) {
+                Text("Разряды по дистанции")
+            }
+            AnimatedVisibility(showAll) {
+                event.value?.let {
+                    RankListDialog(
+                        onDismissRequest = {  },
+                        onConfirmation = { showAll = !showAll },
+                        event = it,
+                        poolType = poolType
+                    )
+                }
             }
         }
     }
