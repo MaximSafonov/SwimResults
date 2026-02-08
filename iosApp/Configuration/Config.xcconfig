@@ -1,4 +1,4 @@
-TEAM_ID=
+TEAM_ID=4A44L4WXYQ
 
 PRODUCT_NAME=SwimResults
 PRODUCT_BUNDLE_IDENTIFIER=com.msafonov.swimresults.SwimResults$(TEAM_ID)

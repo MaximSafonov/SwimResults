@@ -1,6 +1,31 @@
 package com.msafonov.swimresults.data.model
 
-data class TimeComponents(val minutes: Long, val seconds: Long, val milliseconds: Long) {
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+
+data class TimeComponents(
+    val minutes: Long,
+    val seconds: Long,
+    val milliseconds: Long
+) {
+    override fun toString(): String {
+        val msecs = if (milliseconds > 100L) milliseconds.toString()
+            .substring(1) else milliseconds.toString()
+        val minutes = if (minutes > 0L) "$minutes мин " else ""
+        val seconds = if (seconds > 0L) "$seconds сек " else "0 сек "
+        val ms = if (milliseconds > 0L) "$msecs сот" else "0 сот"
+        return "$minutes$seconds$ms"
+    }
+
+    fun toRankFormat(): String {
+        val msecs = if (milliseconds > 100L) milliseconds.toString().substring(1) else milliseconds.toString().padStart(2,'0')
+        val minutes = if (minutes > 0L) "$minutes:" else ""
+        val secs = seconds.toString().padStart(2, '0')
+        return "$minutes$secs.$msecs"
+    }
+
     companion object {
         fun from(time: String): TimeComponents {
             val minutes = if (time.contains(':')) time.split(':')[0] else "00"
@@ -8,6 +33,30 @@ data class TimeComponents(val minutes: Long, val seconds: Long, val milliseconds
             val milliSeconds = time.substringAfter(':').substringAfter('.')
 
             return TimeComponents(minutes.toLong(), seconds.toLong(), milliSeconds.toLong())
+        }
+
+        fun TimeComponents.toDuration(): Duration =
+           if (this.minutes > 0L) {
+                this.minutes.minutes + this.seconds.seconds + this.milliseconds.milliseconds
+            } else this.seconds.seconds + this.milliseconds.milliseconds
+
+        fun durationToComponents(duration: Duration) = TimeComponents(
+            minutes = duration.inWholeMinutes,
+            seconds = duration.inWholeSeconds % 60,
+            milliseconds = duration.inWholeMilliseconds % 1000
+        )
+
+        fun calculateDiff(time1: TimeComponents, time2: TimeComponents): TimeComponents {
+            val duration1 = time1.toDuration()
+            val duration2 = time2.toDuration()
+
+            val difference = if (duration1 > duration2) {
+                duration1 - duration2
+            } else {
+                duration2 - duration1
+            }
+
+            return durationToComponents(difference)
         }
     }
 }
