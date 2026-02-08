@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.msafonov.swimresults.data.model.SwimStyle
 import com.msafonov.swimresults.data.model.Swimmer
 import com.msafonov.swimresults.presentation.CheckResultViewModel
+import com.msafonov.swimresults.ui.theme.FunctionalGrey
 import com.msafonov.swimresults.ui.theme.chipColors
 import org.jetbrains.compose.resources.painterResource
 import swimresults.composeapp.generated.resources.Res
@@ -37,7 +38,8 @@ fun DistanceMenu(distanceList: List<Int>, viewModel: CheckResultViewModel, dista
     ) {
         Text(
             textAlign = TextAlign.Center,
-            text = "Дистанция"
+            text = "Дистанция",
+            color = FunctionalGrey
         )
         Box(
             modifier = Modifier
