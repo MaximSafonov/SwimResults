@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -23,9 +24,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.msafonov.swimresults.data.model.PoolType
 import com.msafonov.swimresults.data.model.SwimEvent
+import com.msafonov.swimresults.data.model.SwimmingRank
 import com.msafonov.swimresults.data.model.TimeComponents
 import com.msafonov.swimresults.ui.theme.Blue30
 import com.msafonov.swimresults.ui.theme.Blue40
+import com.msafonov.swimresults.ui.theme.Ocean10
+import com.msafonov.swimresults.ui.theme.Ocean8
+import com.msafonov.swimresults.ui.theme.Red30
 
 @Composable
 fun RankListDialog(
@@ -47,11 +52,11 @@ fun RankListDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = "${event.style.text} ${event.distance}",
+                    text = " ${event.distance} ${event.style.text}",
                     textAlign = TextAlign.Center,
                     style = TextStyle(
                         fontSize = 30.sp,
-                        color = Blue30
+                        color = Ocean10
                     ),
                     modifier = Modifier.padding(bottom = 2.dp, top = 16.dp),
                 )
@@ -62,12 +67,20 @@ fun RankListDialog(
                     },
                     style = TextStyle(
                         fontSize = 20.sp,
-                        color = Blue40
+                        color = Ocean8
                     ),
                     modifier = Modifier.padding(bottom = 32.dp, top = 2.dp),
                 )
                 event.results.forEach {
                     RankResultRow(it.value, TimeComponents.durationToComponents(it.key))
+                    if (it.value.ordinal != SwimmingRank.entries.lastIndex) {
+                        HorizontalDivider(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                            color = Ocean10,
+                            thickness = 1.dp
+                        )
+                    }
+
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),

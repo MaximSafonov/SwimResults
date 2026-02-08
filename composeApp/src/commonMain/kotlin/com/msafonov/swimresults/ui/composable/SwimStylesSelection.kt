@@ -18,6 +18,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.msafonov.swimresults.data.model.SwimStyle
 import com.msafonov.swimresults.presentation.CheckResultViewModel
+import com.msafonov.swimresults.ui.theme.FunctionalGrey
+import com.msafonov.swimresults.ui.theme.radioColors
 
 @Composable
 fun SwimmingStyles(modifier: Modifier = Modifier, viewModel: CheckResultViewModel) {
@@ -39,12 +41,14 @@ fun SwimmingStyles(modifier: Modifier = Modifier, viewModel: CheckResultViewMode
             ) {
                 RadioButton(
                     selected = (style == selected.value),
-                    onClick = null
+                    onClick = null,
+                    colors = radioColors
                 )
                 Text(
                     text = style.text,
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(start = 16.dp)
+                    modifier = Modifier.padding(start = 16.dp),
+                    color = FunctionalGrey
                 )
             }
         }
