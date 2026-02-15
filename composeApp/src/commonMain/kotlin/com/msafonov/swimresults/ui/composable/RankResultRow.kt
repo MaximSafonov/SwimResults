@@ -12,6 +12,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.msafonov.swimresults.data.model.SwimmingRank
 import com.msafonov.swimresults.data.model.TimeComponents
+import com.msafonov.swimresults.ui.theme.Theme
 
 @Composable
 fun RankResultRow(rank: SwimmingRank, time: TimeComponents) {
@@ -24,14 +25,16 @@ fun RankResultRow(rank: SwimmingRank, time: TimeComponents) {
                 .width(70.dp)
                 .padding(start = 16.dp),
             text = rank.text,
-            textAlign = TextAlign.Start
+            textAlign = TextAlign.Start,
+            color = Theme.colors.onPrimary
         )
         Text(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(end = 16.dp),
             text = time.toRankFormat(),
-            textAlign = TextAlign.End
+            textAlign = TextAlign.End,
+            color = Theme.colors.textContrast
         )
     }
 }

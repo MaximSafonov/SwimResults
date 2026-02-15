@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +32,7 @@ import com.msafonov.swimresults.ui.theme.Blue40
 import com.msafonov.swimresults.ui.theme.Ocean10
 import com.msafonov.swimresults.ui.theme.Ocean8
 import com.msafonov.swimresults.ui.theme.Red30
+import com.msafonov.swimresults.ui.theme.Theme
 
 @Composable
 fun RankListDialog(
@@ -45,6 +47,9 @@ fun RankListDialog(
                 .fillMaxWidth()
                 .padding(16.dp),
             shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Theme.colors.primary,
+            )
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -56,7 +61,7 @@ fun RankListDialog(
                     textAlign = TextAlign.Center,
                     style = TextStyle(
                         fontSize = 30.sp,
-                        color = Ocean10
+                        color = Theme.colors.onPrimary
                     ),
                     modifier = Modifier.padding(bottom = 2.dp, top = 16.dp),
                 )
@@ -67,7 +72,7 @@ fun RankListDialog(
                     },
                     style = TextStyle(
                         fontSize = 20.sp,
-                        color = Ocean8
+                        color = Theme.colors.onPrimary
                     ),
                     modifier = Modifier.padding(bottom = 32.dp, top = 2.dp),
                 )
@@ -76,7 +81,7 @@ fun RankListDialog(
                     if (it.value.ordinal != SwimmingRank.entries.lastIndex) {
                         HorizontalDivider(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                            color = Ocean10,
+                            color = Theme.colors.onPrimary,
                             thickness = 1.dp
                         )
                     }
@@ -90,7 +95,10 @@ fun RankListDialog(
                         onClick = { onConfirmation() },
                         modifier = Modifier.padding(8.dp),
                     ) {
-                        Text("Понятно")
+                        Text(
+                            color = Theme.colors.onPrimary,
+                            text = "Закрыть"
+                        )
                     }
                 }
             }

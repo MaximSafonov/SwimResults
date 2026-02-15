@@ -1,40 +1,51 @@
 package com.msafonov.swimresults.ui.composable
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.msafonov.swimresults.ui.theme.FunctionalGrey
-import com.msafonov.swimresults.ui.theme.textFieldColors
+import com.msafonov.swimresults.ui.theme.Theme
 
 @Composable
-fun ResultUnput(label: String, value: String, onValueChanged: (millis: String) -> Unit) {
+fun ResultUnput(
+    modifier: Modifier = Modifier,
+    label: @Composable () -> Unit,
+    value: String,
+    onValueChanged: (millis: String) -> Unit
+) {
     val maxLength = 2
 
     OutlinedTextField(
+        modifier = modifier,
         value = value,
-        colors = textFieldColors,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = Theme.colors.textPrimary,
+            unfocusedTextColor = Theme.colors.surface3,
+            cursorColor = Theme.colors.surface3,
+            focusedContainerColor = Theme.colors.surface2,
+            unfocusedContainerColor = Theme.colors.surface1,
+            focusedLabelColor = Theme.colors.primary,
+            unfocusedLabelColor = Theme.colors.textSecondary,
+            focusedBorderColor = Theme.colors.primary,
+            unfocusedBorderColor = Theme.colors.primary
+        ),
         onValueChange = { millis ->
             if (millis.length <= maxLength) {
                 onValueChanged(millis)
             }
-
         },
-        label = ({ Text(label) }),
+        label = label,
         textStyle = TextStyle(
-            color = FunctionalGrey,
+            color = Theme.colors.textPrimary,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp
         ),
-        modifier = Modifier.size(height = 70.dp, width = 120.dp).padding(2.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
     )
 }
+

@@ -9,6 +9,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -17,9 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.msafonov.swimresults.data.model.SwimStyle
-import com.msafonov.swimresults.presentation.CheckResultViewModel
+import com.msafonov.swimresults.viewmodel.CheckResultViewModel
 import com.msafonov.swimresults.ui.theme.FunctionalGrey
-import com.msafonov.swimresults.ui.theme.radioColors
+import com.msafonov.swimresults.ui.theme.Theme
 
 @Composable
 fun SwimmingStyles(modifier: Modifier = Modifier, viewModel: CheckResultViewModel) {
@@ -32,7 +33,7 @@ fun SwimmingStyles(modifier: Modifier = Modifier, viewModel: CheckResultViewMode
                     .fillMaxWidth()
                     .height(32.dp)
                     .selectable(
-                        selected = ( style == selected.value ),
+                        selected = (style == selected.value),
                         onClick = { viewModel.setSwimStyle(style) },
                         role = Role.RadioButton
                     )
@@ -42,13 +43,16 @@ fun SwimmingStyles(modifier: Modifier = Modifier, viewModel: CheckResultViewMode
                 RadioButton(
                     selected = (style == selected.value),
                     onClick = null,
-                    colors = radioColors
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = Theme.colors.surface3,
+                        unselectedColor = Theme.colors.surface1,
+                    )
                 )
                 Text(
                     text = style.text,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(start = 16.dp),
-                    color = FunctionalGrey
+                    color = Theme.colors.textPrimary
                 )
             }
         }

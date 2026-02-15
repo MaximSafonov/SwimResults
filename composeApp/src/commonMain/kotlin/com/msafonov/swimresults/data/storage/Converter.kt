@@ -19,7 +19,6 @@ object Converter {
         val events = mutableListOf<SwimEvent>()
         val lines = text
             .replace(',', ' ')
-            .replace("на", " ")
             .replace("стиль", " ")
             .replace("плавание", " ")
             .split("\\s+".toRegex()).chunked(11)

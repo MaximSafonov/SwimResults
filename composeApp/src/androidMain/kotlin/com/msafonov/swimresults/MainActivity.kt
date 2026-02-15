@@ -7,14 +7,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.msafonov.swimresults.ui.screens.CheckResultScreen
+import com.msafonov.swimresults.viewmodel.CheckResultViewModel
 
 class MainActivity : ComponentActivity() {
+    val viewModel = CheckResultViewModel()
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         setContent {
-            CheckResultScreen()
+            CheckResultScreen(viewModel)
         }
     }
 }
@@ -22,5 +24,5 @@ class MainActivity : ComponentActivity() {
 @Preview
 @Composable
 fun AppAndroidPreview() {
-    CheckResultScreen()
+    CheckResultScreen(CheckResultViewModel())
 }

@@ -1,4 +1,4 @@
-package com.msafonov.swimresults.presentation
+package com.msafonov.swimresults.viewmodel
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -31,9 +31,9 @@ class CheckResultViewModel {
     val result = _result.asStateFlow()
 
 
-    var isDarkTheme: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    fun updateTheme(input: Boolean) {
-        isDarkTheme.value = input
+    var isDark by mutableStateOf(true)
+    fun toggleTheme() {
+        isDark = !isDark
     }
 
     var minutes: String by mutableStateOf("")
