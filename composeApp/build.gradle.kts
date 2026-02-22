@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -51,12 +50,24 @@ android {
     namespace = "com.msafonov.swimresults"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    applicationVariants.all {
+        val variant = this
+        variant.outputs.all {
+            val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
+            val project = "SwimResultspp"
+            val version = variant.versionName
+            val type = variant.buildType.name
+
+            output.outputFileName = "$project-v$version-$type.apk"
+        }
+    }
+
     defaultConfig {
         applicationId = "com.msafonov.swimresults"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.11"
     }
     packaging {
         resources {

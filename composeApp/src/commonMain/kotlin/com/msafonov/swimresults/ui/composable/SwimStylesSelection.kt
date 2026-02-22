@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +20,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.msafonov.swimresults.data.model.SwimStyle
 import com.msafonov.swimresults.viewmodel.CheckResultViewModel
-import com.msafonov.swimresults.ui.theme.FunctionalGrey
 import com.msafonov.swimresults.ui.theme.Theme
 
 @Composable
@@ -30,14 +30,13 @@ fun SwimmingStyles(modifier: Modifier = Modifier, viewModel: CheckResultViewMode
         SwimStyle.entries.forEach { style ->
             Row(
                 Modifier
-                    .fillMaxWidth()
+                    .wrapContentWidth()
                     .height(32.dp)
                     .selectable(
                         selected = (style == selected.value),
                         onClick = { viewModel.setSwimStyle(style) },
                         role = Role.RadioButton
-                    )
-                    .padding(start = 70.dp),
+                    ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RadioButton(

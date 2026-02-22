@@ -14,11 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -41,9 +40,9 @@ import com.msafonov.swimresults.viewmodel.CheckResultViewModel
 import com.msafonov.swimresults.ui.composable.DistanceMenu
 import com.msafonov.swimresults.ui.composable.RankListDialog
 import com.msafonov.swimresults.ui.composable.ResultDialog
-import com.msafonov.swimresults.ui.composable.ResultUnput
 import com.msafonov.swimresults.ui.composable.SwimFilterChip
 import com.msafonov.swimresults.ui.composable.SwimmingStyles
+import com.msafonov.swimresults.ui.composable.TimerInput
 import com.msafonov.swimresults.ui.theme.SwimRankAppTheme
 import com.msafonov.swimresults.ui.theme.Theme
 
@@ -54,7 +53,6 @@ fun CheckResultScreen(viewModel: CheckResultViewModel) {
     SwimRankAppTheme(viewModel.isDark) {
         var showResult by remember { mutableStateOf(false) }
         var showAll by remember { mutableStateOf(false) }
-
         val poolType by viewModel.poolType.collectAsState()
         val swimmer by viewModel.swimmer.collectAsState()
         val distance by viewModel.distance.collectAsState()
@@ -71,6 +69,7 @@ fun CheckResultScreen(viewModel: CheckResultViewModel) {
                 modifier = Modifier
                     .safeContentPadding()
                     .fillMaxSize()
+                    .padding(8.dp)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -96,7 +95,7 @@ fun CheckResultScreen(viewModel: CheckResultViewModel) {
                         color = Theme.colors.textPrimary
                     )
                     Switch(
-                        modifier = Modifier.padding(8.dp),
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                         checked = viewModel.isDark,
                         onCheckedChange = null,
                         colors = SwitchDefaults.colors(
@@ -114,7 +113,7 @@ fun CheckResultScreen(viewModel: CheckResultViewModel) {
                         color = Theme.colors.textPrimary
                     )
                 }
-                Spacer(Modifier.fillMaxWidth().height(16.dp))
+                Spacer(Modifier.fillMaxWidth().height(4.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(vertical = 2.dp),
@@ -161,33 +160,11 @@ fun CheckResultScreen(viewModel: CheckResultViewModel) {
                     )
                 }
 
-                SwimmingStyles(viewModel = viewModel)
+                SwimmingStyles(
+                    modifier = Modifier.wrapContentWidth(),
+                    viewModel = viewModel)
                 DistanceMenu(distanceList, viewModel, distance)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                ) {
-                    ResultUnput(
-                        modifier = Modifier.size(height = 70.dp, width = 100.dp).padding(2.dp),
-                        label = { Text("мин") },
-                        value = viewModel.minutes
-                    )
-                    { min -> viewModel.updateMinutes(min) }
-                    ResultUnput(
-                        modifier = Modifier.size(height = 70.dp, width = 100.dp).padding(2.dp),
-                        label = { Text("сек") },
-                        value = viewModel.seconds
-                    )
-                    { sec -> viewModel.updateSeconds(sec) }
-                    ResultUnput(
-                        modifier = Modifier.size(height = 70.dp, width = 100.dp).padding(2.dp),
-                        label = { Text("сот") },
-                        value = viewModel.milliseconds
-                    )
-                    { ms -> viewModel.updateMilliseconds(ms)
-                    }
-                }
-                Spacer(modifier = Modifier.fillMaxWidth().height(16.dp))
+                TimerInput(viewModel)
                 ButtonSecondary(
                     text = "Проверить результат",
                     onClick = {
@@ -201,7 +178,7 @@ fun CheckResultScreen(viewModel: CheckResultViewModel) {
                         result = result.value
                     )
                 }
-                Spacer(modifier = Modifier.fillMaxWidth().height(16.dp))
+                Spacer(modifier = Modifier.fillMaxWidth().height(8.dp))
                 ButtonPrimary(
                     onClick = { showAll = !showAll },
                     text = "Разряды по дистанции"
