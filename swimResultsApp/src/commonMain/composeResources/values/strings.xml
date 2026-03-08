@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SwimResults</string>
+
+    <string name="resultScreenTitle">Результат</string>
+    <string name="stopWatchScreenTitle">Таймер</string>
+    <string name="settingsScreenTitle">Настройки</string>
+    <string name="distanceTitle">Дистанция</string>
+    <string name="shortWaterTitle">Короткая вода</string>
+    <string name="longWaterTitle">Длинная воды</string>
+
+    <string name="start">Старт</string>
+    <string name="pause">Пауза</string>
+    <string name="lap">Поворот</string>
+    <string name="lapCurrent">Бассейн %1$s : %2$s</string>
+    <string name="reset">Сброс</string>
+    <string name="close">Сброс</string>
+    <string name="rank">Разряд : %1$s</string>
+
+    <string name="showResult">Показать результат</string>
+    <string name="checkResult">Проверить результат</string>
+    <string name="distanceResults">Разряды по дистанции</string>
+
+    <string name="betterThanCurrent">Лучше текущего разряда на: \n%1$s</string>
+    <string name="goBetter">Есть куда расти</string>
+    <string name="toNextRank">До следующего разряда(%1$s) : \n%2$s\nПоднажми:)</string>
+
+    <string name="dartTheme">Тёмная тема</string>
+    <string name="lightTheme">Светлая тема</string>
+
+    <string name="shortWaterLength">25 м</string>
+    <string name="longWaterLength">50 м</string>
+
+    <string name="women">Девушки</string>
+    <string name="men">Юноши</string>
+
+
+</resources>

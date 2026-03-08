@@ -6,8 +6,29 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		888BCDAB2F4B842100B61BFA /* SwimResults.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 888BCDAA2F4B842100B61BFA /* SwimResults.framework */; };
+		888BCDAC2F4B842100B61BFA /* SwimResults.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 888BCDAA2F4B842100B61BFA /* SwimResults.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		888BCDAD2F4B842100B61BFA /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				888BCDAC2F4B842100B61BFA /* SwimResults.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		6CC2E6D373CF4EC99D032CF8 /* SwimResults.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwimResults.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		888BCDA92F4B83EB00B61BFA /* SwimResults */ = {isa = PBXFileReference; lastKnownFileType = text; name = SwimResults; path = "../swimResultsApp/build/xcode-frameworks/Debug/iphonesimulator26.2/SwimResults.framework/SwimResults"; sourceTree = "<group>"; };
+		888BCDAA2F4B842100B61BFA /* SwimResults.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwimResults.framework; path = "../swimResultsApp/build/xcode-frameworks/Debug/iphonesimulator26.2/SwimResults.framework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -41,12 +62,22 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				888BCDAB2F4B842100B61BFA /* SwimResults.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		888BCDA82F4B83EB00B61BFA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				888BCDAA2F4B842100B61BFA /* SwimResults.framework */,
+				888BCDA92F4B83EB00B61BFA /* SwimResults */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		8AEF0DAFFD1694AEA4422F80 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -60,6 +91,7 @@
 			children = (
 				67863C2E08B6A4C950769158 /* Configuration */,
 				99589481D71B76AF341F1B93 /* iosApp */,
+				888BCDA82F4B83EB00B61BFA /* Frameworks */,
 				8AEF0DAFFD1694AEA4422F80 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -71,10 +103,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6C15AABD866C45F6D6AEF4DF /* Build configuration list for PBXNativeTarget "iosApp" */;
 			buildPhases = (
+				AFCA2B967B8B3087CE6A4E7C /* Compile Kotlin */,
 				264C8E5335C574A74D24F32D /* Compile Kotlin Framework */,
 				39EDB147781C242C72E25E17 /* Sources */,
 				AFFA17D939E5A3BBA16F9941 /* Frameworks */,
 				762672E2CE68C890587C132C /* Resources */,
+				888BCDAD2F4B842100B61BFA /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -152,7 +186,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\n\ncd \"$SRCROOT/..\"\n./gradlew :swimResultsApp:embedAndSignAppleFrameworkForXcode\ncd \"$SRCROOT/..\"\n./gradlew :swimResultsApp:embedAndSignAppleFrameworkForXcode\n";
+		};
+		AFCA2B967B8B3087CE6A4E7C /* Compile Kotlin */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Compile Kotlin";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :swimResultsApp:embedAndSignAppleFrameworkForXcode\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -301,6 +349,11 @@
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
 				DEVELOPMENT_TEAM = 4A44L4WXYQ;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/**",
+					"\"$(SRCROOT)/../swimResultsApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\"",
+				);
+				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/**";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -329,6 +382,11 @@
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
 				DEVELOPMENT_TEAM = 4A44L4WXYQ;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/**",
+					"\"$(SRCROOT)/../swimResultsApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\"",
+				);
+				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/**";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
