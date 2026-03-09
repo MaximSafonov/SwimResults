@@ -1,0 +1,103 @@
+package com.msafonov.swimresults.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+val Blue10 = Color(0xFF000F5E)
+val Blue20 = Color(0xFF001E92)
+val Blue30 = Color(0xFF002ECC)
+val Blue40 = Color(0xFF1546F6)
+val Blue80 = Color(0xFFB8C3FF)
+val Blue90 = Color(0xFFDDE1FF)
+
+val DarkBlue10 = Color(0xFF00036B)
+val DarkBlue20 = Color(0xFF000BA6)
+val DarkBlue30 = Color(0xFF1026D3)
+val DarkBlue40 = Color(0xFF3648EA)
+val DarkBlue80 = Color(0xFFBBC2FF)
+val DarkBlue90 = Color(0xFFDEE0FF)
+
+val Yellow10 = Color(0xFF261900)
+val Yellow20 = Color(0xFF402D00)
+val Yellow30 = Color(0xFF5C4200)
+val Yellow40 = Color(0xFF7A5900)
+val Yellow80 = Color(0xFFFABD1B)
+val Yellow90 = Color(0xFFFFDE9C)
+
+val Red10 = Color(0xFF410001)
+val Red20 = Color(0xFF680003)
+val Red30 = Color(0xFF930006)
+val Red40 = Color(0xFFBA1B1B)
+val Red80 = Color(0xFFFFB4A9)
+val Red90 = Color(0xFFFFDAD4)
+
+val Grey10 = Color(0xFF191C1D)
+val Grey20 = Color(0xFF2D3132)
+val Grey80 = Color(0xFFC4C7C7)
+val Grey90 = Color(0xFFE0E3E3)
+val Grey95 = Color(0xFFEFF1F1)
+val Grey99 = Color(0xFFFBFDFD)
+
+val BlueGrey30 = Color(0xFF45464F)
+val BlueGrey50 = Color(0xFF767680)
+val BlueGrey60 = Color(0xFF90909A)
+val BlueGrey80 = Color(0xFFC6C5D0)
+val BlueGrey90 = Color(0xFFE2E1EC)
+
+val Shadow11 = Color(0xff001787)
+val Shadow10 = Color(0xff00119e)
+val Shadow9 = Color(0xff0009b3)
+val Shadow8 = Color(0xff0200c7)
+val Shadow7 = Color(0xff0e00d7)
+val Shadow6 = Color(0xff2a13e4)
+val Shadow5 = Color(0xff4b30ed)
+val Shadow4 = Color(0xff7057f5)
+val Shadow3 = Color(0xff9b86fa)
+val Shadow2 = Color(0xffc8bbfd)
+val Shadow1 = Color(0xffded6fe)
+val Shadow0 = Color(0xfff4f2ff)
+
+val FunctionalGrey = Color(0xfff6f6f6) // backGround dark
+val FunctionalDarkGrey = Color(0xff2e2e2e) // backGround light
+
+
+
+
+val Lavender11 = Color(0xff170085)
+val Lavender10 = Color(0xff23009e)
+val Lavender9 = Color(0xff3300b3)
+val Lavender8 = Color(0xff4400c7)
+val Lavender7 = Color(0xff5500d7)
+val Lavender6 = Color(0xff6f13e4)
+val Lavender5 = Color(0xff8a30ed)
+val Lavender4 = Color(0xffa557f5)
+val Lavender3 = Color(0xffc186fa)
+val Lavender2 = Color(0xffdebbfd)
+val Lavender1 = Color(0xffebd6fe)
+val Lavender0 = Color(0xfff9f2ff)
+
+val Rose11 = Color(0xff7f0054)
+val Rose10 = Color(0xff97005c)
+val Rose9 = Color(0xffaf0060)
+val Rose8 = Color(0xffc30060)
+val Rose7 = Color(0xffd4005d)
+val Rose6 = Color(0xffe21365)
+val Rose5 = Color(0xffec3074)
+val Rose4 = Color(0xfff4568b)
+val Rose3 = Color(0xfff985aa)
+val Rose2 = Color(0xfffdbbcf)
+val Rose1 = Color(0xfffed6e2)
+val Rose0 = Color(0xfffff2f6)
+
+val Neutral8 = Color(0xff121212)
+val Neutral7 = Color(0xde000000)
+val Neutral6 = Color(0x99000000)
+val Neutral5 = Color(0x61000000)
+val Neutral4 = Color(0x1f000000)
+val Neutral3 = Color(0x1fffffff)
+val Neutral2 = Color(0x61ffffff)
+val Neutral1 = Color(0xbdffffff)
+val Neutral0 = Color(0xffffffff)
+
+val FunctionalRed = Color(0xffd00036)
+val FunctionalRedDark = Color(0xffea6d7e)
+val FunctionalGreen = Color(0xff52c41a)

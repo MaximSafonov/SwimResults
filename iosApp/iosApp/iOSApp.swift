@@ -1,4 +1,5 @@
 import SwiftUI
+import SwimResults
 
 @main
 struct iOSApp: App {

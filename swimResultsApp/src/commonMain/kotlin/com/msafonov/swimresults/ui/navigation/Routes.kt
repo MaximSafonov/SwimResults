@@ -1,0 +1,35 @@
+package com.msafonov.swimresults.ui.navigation
+
+
+import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.getString
+import swimresults.swimresultsapp.generated.resources.Res
+import swimresults.swimresultsapp.generated.resources.resultScreenTitle
+import swimresults.swimresultsapp.generated.resources.settingsScreenTitle
+import swimresults.swimresultsapp.generated.resources.stopWatchScreenTitle
+
+
+@Serializable
+sealed class Screen() {
+    abstract val route: String
+    abstract suspend fun title(): String
+    @Serializable
+    data object CheckResult : Screen() {
+        override val route: String = "checkResult"
+        override suspend fun  title(): String = getString(Res.string.resultScreenTitle)
+    }
+    @Serializable
+    data object Timer : Screen() {
+        override val route: String = "timer"
+        override suspend fun title(): String = getString(Res.string.stopWatchScreenTitle)
+    }
+    @Serializable
+    data object Settings : Screen() {
+        override val route: String = "settings"
+        override suspend fun  title(): String = getString(Res.string.settingsScreenTitle)
+
+    }
+}
+
+
+
