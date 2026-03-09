@@ -14,7 +14,7 @@
     <string name="lap">Поворот</string>
     <string name="lapCurrent">Бассейн %1$s : %2$s</string>
     <string name="reset">Сброс</string>
-    <string name="close">Сброс</string>
+    <string name="close">Закрыть</string>
     <string name="rank">Разряд : %1$s</string>
 
     <string name="showResult">Показать результат</string>

@@ -50,7 +50,7 @@ fun SettingsScreen() {
                     interactionSource = remember { MutableInteractionSource() }
                 )
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(16.dp)
                 .background(
                     color = Theme.colors.surface1,
                     shape = RoundedCornerShape(8.dp)
@@ -63,7 +63,7 @@ fun SettingsScreen() {
                 color = Theme.colors.textPrimary
             )
             Switch(
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
                 checked = isDark,
                 onCheckedChange = null,
                 colors = SwitchDefaults.colors(

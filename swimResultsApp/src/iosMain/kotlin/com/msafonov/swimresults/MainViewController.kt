@@ -6,4 +6,4 @@ import com.msafonov.swimresults.ui.screens.CheckResultScreen
 import com.msafonov.swimresults.ui.screens.SwimResultsApp
 import com.msafonov.swimresults.viewmodel.CheckResultViewModel
 
-fun MainViewController() = ComposeUIViewController { SwimResultsApp() }
+fun MainViewController() = ComposeUIViewController { App() }

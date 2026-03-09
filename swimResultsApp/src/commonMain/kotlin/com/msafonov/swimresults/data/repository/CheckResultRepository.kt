@@ -7,6 +7,7 @@ import com.msafonov.swimresults.data.model.SwimStyle
 import com.msafonov.swimresults.data.model.SwimmingRank
 import com.msafonov.swimresults.data.model.TimeComponents
 import com.msafonov.swimresults.data.model.TimeComponents.Companion.toDuration
+import com.msafonov.swimresults.data.storage.RankTable
 import com.msafonov.swimresults.data.storage.RankTableStorage
 import com.msafonov.swimresults.data.storage.StopWatchStorage
 import org.koin.core.annotation.Singleton
@@ -14,18 +15,13 @@ import kotlin.time.Duration
 
 @Singleton
 class CheckResultRepository(
-    private val rankTableStorage: RankTableStorage,
+    private val rankTableStorage: RankTable,
     private val stopWatchStorage: StopWatchStorage
 ) {
     val stopWatchTime = stopWatchStorage.stopTime
     fun dropTime() = stopWatchStorage.dropTime()
 
-    fun rankTable(type: RankTableType) = when(type) {
-        RankTableType.LongWaterMan -> rankTableStorage.longWaterMan
-        RankTableType.LongWaterWomen -> rankTableStorage.longWaterWomen
-        RankTableType.ShortWaterMan -> rankTableStorage.shortWaterMan
-        RankTableType.ShortWaterWomen -> rankTableStorage.shortWaterWomen
-    }
+    fun rankTable(type: RankTableType) = rankTableStorage.rankTable(type)
 
     fun Map<Duration, SwimmingRank>.checkResult(targetValue: TimeComponents): CheckedResult? {
         return try {

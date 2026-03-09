@@ -2,6 +2,7 @@ package com.msafonov.swimresults.data.storage
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.koin.core.annotation.Singleton
 
 
 interface StopWatchStorage {
@@ -11,7 +12,8 @@ interface StopWatchStorage {
 }
 
 
-class InMemoryStopWatchStorage: StopWatchStorage {
+@Singleton
+internal class InMemoryStopWatchStorage: StopWatchStorage {
     override val stopTime: MutableStateFlow<String?> = MutableStateFlow(null)
     override fun dropTime() {
         stopTime.value = null

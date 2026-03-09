@@ -1,14 +1,28 @@
 package com.msafonov.swimresults.data.storage
 
+import com.msafonov.swimresults.data.model.RankTableType
 import com.msafonov.swimresults.data.model.SwimEvent
 import com.msafonov.swimresults.data.model.SwimStyle
 import com.msafonov.swimresults.data.model.SwimmingRank
 import com.msafonov.swimresults.data.model.TimeComponents
 import com.msafonov.swimresults.data.model.TimeComponents.Companion.toDuration
+import org.koin.core.annotation.Singleton
 import kotlin.time.Duration
 
-class RankTableStorage {
-    val shortWaterMan: List<SwimEvent> = parseFromText(
+interface RankTable{
+    fun rankTable(type: RankTableType): List<SwimEvent>
+}
+
+@Singleton
+internal class RankTableStorage: RankTable {
+
+    override fun rankTable(type: RankTableType) = when(type) {
+        RankTableType.LongWaterMan -> longWaterMan
+        RankTableType.LongWaterWomen -> longWaterWomen
+        RankTableType.ShortWaterMan -> shortWaterMan
+        RankTableType.ShortWaterWomen -> shortWaterWomen
+    }
+    private val shortWaterMan: List<SwimEvent> = parseFromText(
         """50, баттерфляй	58.05	48.05	38.05	33.05	30.05	26.95	24.95	23.95	22.52
 100, баттерфляй	02:01.10	01:49.10	01:30.10	01:20.10	01:10.10	01:01.50	58.00	54.00	50.15
 200, баттерфляй	04:36.20	03:56.20	03:21.20	02:57.20	02:36.70	02:17.95	02:09.95	02:02.95	01:52.45
@@ -29,7 +43,7 @@ class RankTableStorage {
 200, спина	04:50.20	04:10.20	03:24.20	02:56.20	02:36.20	02:19.20	02:11.45	02:04.75	01:52.45"""
     )
 
-    val longWaterMan: List<SwimEvent> = parseFromText(
+    private val longWaterMan: List<SwimEvent> = parseFromText(
         """50, баттерфляй	58.80	48.80	38.80	33.80	30.80	27.70	25.70	24.70	23.27
 100, баттерфляй	02:10.60	01:50.60	01:31.60	01:21.60	01:11.60	01:03.00	59.50	55.50	51.62
 200, баттерфляй	04:39.20	03:59.20	03:24.20	03:00.20	02:39.70	02:20.95	02:13.95	02:05.95	01:56.23
@@ -49,7 +63,7 @@ class RankTableStorage {
 200, спина	04:53.20	04:13.20	03:27.20	02:59.20	02:38.20	02:22.45	02:15.45	02:07.75	01:57.30"""
     )
 
-    val shortWaterWomen: List<SwimEvent> = parseFromText(
+    private val shortWaterWomen: List<SwimEvent> = parseFromText(
         """50, баттерфляй	01:03.55	53.55	43.55	36.55	33.55	30.95	28.45	27.30	25.62
 100, баттерфляй	02:21.10	02:01.10	01:42.10	01:30.10	01:19.10	01:09.50	01:05.00	01:01.50	57.16
 200, баттерфляй	05:01.20	04:21.20	03:45.20	03:18.20	02:55.20	02:34.45	02:24.45	02:16.95	02:07.15
@@ -70,7 +84,7 @@ class RankTableStorage {
 200, спина	05:15.20	04:35.20	03:50.20	03:16.20	02:54.20	02:34.95	02:25.95	02:17.95	02:05.15"""
     )
 
-    val longWaterWomen: List<SwimEvent> = parseFromText(
+    private val longWaterWomen: List<SwimEvent> = parseFromText(
         """50, баттерфляй	01:04.30	54.30	44.30	37.30	34.30	31.70	29.20	28.05	26.03
 100, баттерфляй	02:22.60	02:02.60	01:43.60	01:31.60	01:20.60	01:11.00	01:06.50	01:03.00	58.06
 200, баттерфляй	05:04.20	04:24.20	03:48.20	03:21.20	02:58.20	02:37.45	02:27.45	02:19.95	02:08.90
@@ -90,13 +104,13 @@ class RankTableStorage {
 200, спина	05:18.00	04:38.20	03:53.20	03:19.20	02:57.20	02:37.95	02:28.95	02:20.95	02:09.77"""
     )
 
-    fun convertStrToRanks(str: String) {
+    private fun convertStrToRanks(str: String) {
         val stringList = str.split("\\s+".toRegex()).mapIndexed { index, string ->
             Pair<SwimmingRank, String>(SwimmingRank.entries[index], string)
         }
     }
 
-    fun parseFromText(text: String): List<SwimEvent> {
+    private fun parseFromText(text: String): List<SwimEvent> {
         val events = mutableListOf<SwimEvent>()
         val lines = text
             .replace(',', ' ')
