@@ -11,9 +11,4 @@ object KoinApp
 @Module
 @ComponentScan("com.msafonov.swimresults")
 @Configuration
-class AppModule {
-
-
-
-}
-
+class AppModule
