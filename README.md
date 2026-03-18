@@ -6,8 +6,7 @@
 
 #### Kotlin Multiplatform project targeting Android, iOS.
 
-
-> [!СТЭК]       
+> Стэк     
 >   - UI: Compose Multiplatform
 >   - DI: Koin
 >   - Threads: Coroutines + Flow

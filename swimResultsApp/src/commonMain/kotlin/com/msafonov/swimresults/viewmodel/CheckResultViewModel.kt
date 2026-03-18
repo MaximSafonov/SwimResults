@@ -97,7 +97,7 @@ class CheckResultViewModel(
 
             PoolType.Long -> {
                 if (swimmer == Swimmer.Women) RankTableType.LongWaterWomen
-                else RankTableType.ShortWaterMan
+                else RankTableType.LongWaterMan
             }
         }
         repository.rankTable(type)
