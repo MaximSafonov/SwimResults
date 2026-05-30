@@ -82,7 +82,7 @@ android {
         applicationId = "com.msafonov.swimresults"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 5
+        versionCode = 6
         versionName = "2.2"
     }
     packaging {
