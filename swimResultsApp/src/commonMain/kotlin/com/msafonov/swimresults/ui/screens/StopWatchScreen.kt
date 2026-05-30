@@ -70,7 +70,6 @@ fun StopWatchScreen(
             ButtonPrimary(
                 modifier = Modifier.padding(vertical = 8.dp),
                 onClick = { viewModel.reset() },
-                enabled = viewModel.isRunning,
                 text = stringResource(Res.string.reset)
             )
 

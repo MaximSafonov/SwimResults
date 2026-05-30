@@ -6,34 +6,39 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.msafonov.swimresults.data.model.CheckedResult
 import com.msafonov.swimresults.data.repository.StopWatchRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeSource
 
 @KoinViewModel
 class StopWatchViewModel(
     private val repository: StopWatchRepository
 ): ViewModel() {
-    private var pausedTime = 0L
-    private var timerJob: Job? = null
-
+       private var timerJob: Job? = null
 
     var isRunning by mutableStateOf(false)
     var elapsedTime by mutableStateOf(0L)
+        private set
     val laps = mutableStateListOf<Long>()
+
+    private var pausedDuration = Duration.ZERO
+    private val timeSource = TimeSource.Monotonic
 
     fun start() {
         if (isRunning) return
         isRunning = true
-        elapsedTime = pausedTime
+
+        val startTimeMark = timeSource.markNow()
+
         timerJob = viewModelScope.launch {
             while (isRunning) {
-                elapsedTime += 10
+                val currentDuration = startTimeMark.elapsedNow() + pausedDuration
+                elapsedTime = currentDuration.inWholeMilliseconds
                 delay(10)
             }
         }
@@ -41,7 +46,8 @@ class StopWatchViewModel(
 
     fun pause() {
         isRunning = false
-        pausedTime = elapsedTime
+        pausedDuration = elapsedTime.milliseconds
+        timerJob?.cancel()
         timerJob?.cancel()
     }
 
@@ -50,10 +56,10 @@ class StopWatchViewModel(
     }
 
     fun reset() {
-        pause()
+        isRunning = false
+        timerJob?.cancel()
+        pausedDuration = Duration.ZERO
         elapsedTime = 0L
-        pausedTime = 0L
-        laps.clear()
     }
 
     fun setTime() = repository.setTime(formatTime(elapsedTime))
