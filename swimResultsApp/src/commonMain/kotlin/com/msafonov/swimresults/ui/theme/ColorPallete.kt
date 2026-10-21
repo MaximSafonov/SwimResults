@@ -87,7 +87,7 @@ val BackGroundDark = Color(0xFF1C232D)
 val BackGroundLight = Color(0xFFECECEC)
 
 val BackGround2Dark = Color(0xFF12161D)
-val BackGround2Light = Color(0xFFECECEC)
+val BackGround2Light = Color(0xFFD8D8D8)
 
 val Surface1Dark = Color(0xff005687)
 val Surface1Light = Color(0xff00a1c7)

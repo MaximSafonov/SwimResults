@@ -35,4 +35,19 @@
     <string name="men">Юноши</string>
 
 
+    <string name="genderGroup">Пол</string>
+    <string name="poolGroup">Бассейн</string>
+    <string name="styleGroup">Стиль плавания</string>
+    <string name="distanceMeters">%1$d м</string>
+    <string name="standardsTitle">Нормативы</string>
+    <string name="standardsLoading">Загрузка нормативов…</string>
+    <string name="standardsError">Не удалось загрузить нормативы.</string>
+    <string name="standardsUnavailable">Для выбранной дистанции нормативы отсутствуют.</string>
+    <string name="standardMissing">Норматив отсутствует</string>
+    <string name="retryStandards">Повторить</string>
+    <string name="checkOwnResult">Проверить свой результат</string>
+    <string name="sectionExpanded">Развёрнуто</string>
+    <string name="sectionCollapsed">Свёрнуто</string>
+    <string name="clearTime">Очистить время</string>
+    <string name="timeInputLabel">Время (ММ:СС.МС)</string>
 </resources>

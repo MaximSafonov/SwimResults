@@ -1,142 +1,165 @@
 package com.msafonov.swimresults.viewmodel
 
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.msafonov.swimresults.data.model.CheckedResult
-import com.msafonov.swimresults.data.model.Constants
 import com.msafonov.swimresults.data.model.PoolType
 import com.msafonov.swimresults.data.model.RankTableType
 import com.msafonov.swimresults.data.model.SwimEvent
 import com.msafonov.swimresults.data.model.SwimStyle
 import com.msafonov.swimresults.data.model.Swimmer
 import com.msafonov.swimresults.data.repository.CheckResultRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.annotation.KoinViewModel
 
 @KoinViewModel
 class CheckResultViewModel(
     private val repository: CheckResultRepository
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow(CheckResultUiState())
+    val uiState = _uiState.asStateFlow()
+    private val tables = mutableMapOf<RankTableType, List<SwimEvent>>()
+    private var tableJob: Job? = null
+    private var stopwatchJob: Job? = null
+    private var generation = 0L
 
-    private val _result = MutableStateFlow<CheckedResult?>(null)
-    val result = _result.asStateFlow()
+    // Internal test seam: set before the queued initial load runs. DI stays unchanged.
+    internal var tableDispatcher: CoroutineDispatcher = Dispatchers.Default
 
-    private val _timerInput = MutableStateFlow(TextFieldValue(""))
-    val timerInput = _timerInput.asStateFlow()
-    fun onInputChanged(newValue: TextFieldValue) {
-        repository.dropTime()
-        _timerInput.value = newValue
-    }
-
-    private val _poolType = MutableStateFlow<PoolType>(PoolType.Short)
-    val poolType = _poolType.asStateFlow()
-
-    fun checkPool(poolType: PoolType) {
-        _poolType.value = poolType
-    }
-
-    private val _swimmer = MutableStateFlow<Swimmer>(Swimmer.Women)
-    val swimmer = _swimmer.asStateFlow()
-
-    fun setSwimmer(swimmer: Swimmer) {
-        _swimmer.value = swimmer
-    }
-
-    private val _distance = MutableStateFlow(Constants.COMMON_LIST.first())
-    val distance = _distance.asStateFlow()
-    fun setDistance(distance: Int) {
-        _distance.value = distance
-    }
-
-    val stopWatchTime =
-        repository.stopWatchTime.stateIn(viewModelScope, SharingStarted.WhileSubscribed(500), null)
-
-    private val _swimStyle = MutableStateFlow<SwimStyle>(SwimStyle.FREESTYLE)
-    val swimStyle = _swimStyle.asStateFlow()
-
-    fun setSwimStyle(swimStyle: SwimStyle) {
-        _swimStyle.value = swimStyle
-
-        when (swimStyle) {
-            SwimStyle.MEDLEY -> {
-                if (poolType.value == PoolType.Short && !Constants.MEDLEY_LIST_SHORT.contains(
-                        distance.value
-                    )
-                ) {
-                    setDistance(Constants.MEDLEY_LIST_SHORT.first())
-                }
-
-                if (poolType.value == PoolType.Long && !Constants.MEDLEY_LIST_LONG.contains(distance.value)) {
-                    setDistance(Constants.MEDLEY_LIST_LONG.first())
-                }
-            }
-
-            SwimStyle.BREASTSTROKE, SwimStyle.BUTTERFLY, SwimStyle.BACKSTROKE -> {
-                if (!Constants.COMMON_LIST.contains(distance.value)) setDistance(Constants.COMMON_LIST.first())
-            }
-
-            else -> Unit
-        }
-    }
-
-    val eventTable: StateFlow<List<SwimEvent>> = combine(
-        poolType,
-        swimmer
-    ) { pool, swimmer ->
-        val type = when (pool) {
-            PoolType.Short -> {
-                if (swimmer == Swimmer.Women) RankTableType.ShortWaterWomen
-                else RankTableType.ShortWaterMan
-            }
-
-            PoolType.Long -> {
-                if (swimmer == Swimmer.Women) RankTableType.LongWaterWomen
-                else RankTableType.LongWaterMan
-            }
-        }
-        repository.rankTable(type)
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Eagerly,
-        repository.rankTable(RankTableType.ShortWaterWomen)
+    // Compatibility adapters for the existing auxiliary components; all state is derived.
+    private fun <T> selection(select: (CheckResultUiState) -> T) = uiState.map(select)
+        .distinctUntilChanged().stateIn(
+            viewModelScope, SharingStarted.Eagerly, select(uiState.value)
+        )
+    val result = selection { it.result }
+    val timerInput = selection { it.timerInput }
+    val poolType = selection { it.filters.poolType }
+    val swimmer = selection { it.filters.swimmer }
+    val distance = selection { it.filters.distance }
+    val swimStyle = selection { it.filters.swimStyle }
+    val eventTable = selection { it.eventTable }
+    val currentEvent = selection { it.currentEvent }
+    val distanceList = selection { it.filters.distances }
+    val stopWatchTime = repository.stopWatchTime.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(500), null
     )
 
-    val currentEvent: StateFlow<SwimEvent?> = combine(
-        eventTable,
-        distance,
-        swimStyle,
-    ) { table, distance, style ->
-        table.firstOrNull { it.distance == distance && it.style == style }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    init { loadTable() }
 
-    val distanceList: StateFlow<List<Int>> = combine(swimStyle, poolType) { style, pool ->
-        val list = when (style) {
-            SwimStyle.FREESTYLE -> Constants.FREESTYLE_LIST
-            SwimStyle.MEDLEY -> {
-                if (pool == PoolType.Short) Constants.MEDLEY_LIST_SHORT
-                else Constants.MEDLEY_LIST_LONG
+    // Only the resumed route may consume the shared handoff. Older back-stack VMs stay idle.
+    fun startStopwatchUpdates() {
+        if (stopwatchJob?.isActive == true) return
+        stopwatchJob = viewModelScope.launch {
+            repository.stopWatchTime.collect { time ->
+                if (time != null) {
+                    _uiState.value = _uiState.value.copy(
+                        timerInput = TextFieldValue(time, TextRange(time.length)),
+                        resultExpanded = true,
+                        result = null,
+                        showResult = false
+                    )
+                    repository.dropTime()
+                }
             }
-
-            else -> Constants.COMMON_LIST
         }
-        if (!list.contains(_distance.value)) setDistance(list.first())
-
-        list
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, Constants.COMMON_LIST)
-
-    fun checkResult() {
-        _result.value = repository.checkResult(
-            eventTable = eventTable.value,
-            swimStyle = swimStyle.value,
-            distance = distance.value,
-            result = timerInput.value.text
-        )
     }
 
+    fun stopStopwatchUpdates() {
+        stopwatchJob?.cancel()
+        stopwatchJob = null
+    }
+
+    fun checkPool(poolType: PoolType) = selectFilters(_uiState.value.filters.copy(poolType = poolType))
+    fun setSwimmer(swimmer: Swimmer) = selectFilters(_uiState.value.filters.copy(swimmer = swimmer))
+    fun setSwimStyle(swimStyle: SwimStyle) =
+        selectFilters(_uiState.value.filters.copy(swimStyle = swimStyle))
+
+    fun setDistance(distance: Int) {
+        if (distance in _uiState.value.filters.distances) {
+            selectFilters(_uiState.value.filters.copy(distance = distance))
+        }
+    }
+
+    private fun selectFilters(candidate: CheckResultFilters) {
+        val before = _uiState.value
+        val filters = candidate.normalized()
+        if (filters == before.filters) return
+        val next = before.copy(filters = filters, result = null, showResult = false)
+        if (filters.tableType == before.filters.tableType) {
+            _uiState.value = if (before.status == StandardsStatus.Ready ||
+                before.status == StandardsStatus.Unavailable
+            ) next.withTable(before.eventTable) else next
+        } else {
+            loadTable(next)
+        }
+    }
+
+    private fun loadTable(state: CheckResultUiState = _uiState.value) {
+        tableJob?.cancel()
+        val request = ++generation
+        val key = state.filters.tableType
+        tables[key]?.let {
+            _uiState.value = state.withTable(it)
+            return
+        }
+        _uiState.value = state.copy(
+            status = StandardsStatus.Loading, eventTable = emptyList(), currentEvent = null,
+            standards = qualificationStandards(null), result = null, showResult = false
+        )
+        tableJob = viewModelScope.launch {
+            try {
+                val table = withContext(tableDispatcher) { repository.rankTable(key) }
+                if (request == generation && key == _uiState.value.filters.tableType) {
+                    tables[key] = table
+                    // Style/distance may have changed while this table was being loaded.
+                    _uiState.value = _uiState.value.withTable(table)
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                if (request == generation && key == _uiState.value.filters.tableType) {
+                    _uiState.value = _uiState.value.copy(status = StandardsStatus.Error)
+                }
+            }
+        }
+    }
+
+    fun retry() {
+        if (_uiState.value.status == StandardsStatus.Error) loadTable()
+    }
+
+    fun onInputChanged(newValue: TextFieldValue) {
+        if (_uiState.value.timerInput == newValue) return
+        _uiState.value = _uiState.value.copy(timerInput = newValue, result = null, showResult = false)
+    }
+
+    fun toggleResultExpanded() {
+        _uiState.value = _uiState.value.copy(resultExpanded = !_uiState.value.resultExpanded)
+    }
+
+    fun dismissResult() {
+        _uiState.value = _uiState.value.copy(showResult = false)
+    }
+
+    fun checkResult() {
+        val state = _uiState.value
+        if (!state.canCheckResult) return
+        val checked = repository.checkResult(
+            eventTable = state.eventTable, swimStyle = state.filters.swimStyle,
+            distance = state.filters.distance, result = state.timerInput.text
+        )
+        _uiState.value = state.copy(result = checked, showResult = true)
+    }
 }

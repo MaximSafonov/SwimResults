@@ -2,167 +2,222 @@ package com.msafonov.swimresults.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.msafonov.swimresults.data.model.PoolType
+import com.msafonov.swimresults.data.model.SwimStyle
 import com.msafonov.swimresults.data.model.Swimmer
-import com.msafonov.swimresults.ui.composable.ButtonPrimary
-import com.msafonov.swimresults.ui.composable.ButtonSecondary
-import com.msafonov.swimresults.viewmodel.CheckResultViewModel
-import com.msafonov.swimresults.ui.composable.DistanceMenu
-import com.msafonov.swimresults.ui.dialogs.RankListDialog
-import com.msafonov.swimresults.ui.dialogs.ResultDialog
+import com.msafonov.swimresults.ui.composable.QualificationGrid
 import com.msafonov.swimresults.ui.composable.SwimFilterChip
-import com.msafonov.swimresults.ui.composable.SwimmingStyles
 import com.msafonov.swimresults.ui.composable.TimerInput
+import com.msafonov.swimresults.ui.dialogs.ResultDialog
 import com.msafonov.swimresults.ui.theme.Theme
+import com.msafonov.swimresults.ui.theme.SwimRankAppTheme
+import com.msafonov.swimresults.viewmodel.CheckResultUiState
+import com.msafonov.swimresults.viewmodel.withTable
+import com.msafonov.swimresults.data.storage.RankTableStorage
+import com.msafonov.swimresults.data.model.RankTableType
+import com.msafonov.swimresults.viewmodel.CheckResultViewModel
+import com.msafonov.swimresults.viewmodel.StandardsStatus
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import swimresults.swimresultsapp.generated.resources.Res
-import swimresults.swimresultsapp.generated.resources.checkResult
-import swimresults.swimresultsapp.generated.resources.distanceResults
-import swimresults.swimresultsapp.generated.resources.longWaterLength
-import swimresults.swimresultsapp.generated.resources.men
-import swimresults.swimresultsapp.generated.resources.shortWaterLength
-import swimresults.swimresultsapp.generated.resources.women
+import swimresults.swimresultsapp.generated.resources.*
 
 @Composable
-@Preview
-fun CheckResultScreen(
-    passedResult: String? = null
-) {
+fun CheckResultScreen(passedResult: String? = null) {
     val viewModel = koinViewModel<CheckResultViewModel>()
-    var showResult by remember { mutableStateOf(false) }
-    var showAll by remember { mutableStateOf(false) }
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    LifecycleResumeEffect(viewModel) {
+        viewModel.startStopwatchUpdates()
+        onPauseOrDispose { viewModel.stopStopwatchUpdates() }
+    }
+    CheckResultContent(
+        state = state,
+        onSwimmer = viewModel::setSwimmer,
+        onPool = viewModel::checkPool,
+        onStyle = viewModel::setSwimStyle,
+        onDistance = viewModel::setDistance,
+        onRetry = viewModel::retry,
+        onToggleResult = viewModel::toggleResultExpanded,
+        onInput = viewModel::onInputChanged,
+        onCheck = viewModel::checkResult,
+        onDismissResult = viewModel::dismissResult
+    )
+}
 
-    val poolType by viewModel.poolType.collectAsStateWithLifecycle()
-    val swimmer by viewModel.swimmer.collectAsStateWithLifecycle()
-    val distance by viewModel.distance.collectAsStateWithLifecycle()
-    val distanceList by viewModel.distanceList.collectAsStateWithLifecycle(emptyList())
-    val result = viewModel.result.collectAsStateWithLifecycle()
-    val event = viewModel.currentEvent.collectAsStateWithLifecycle()
-
-    val stopWatchTime by viewModel.stopWatchTime.collectAsStateWithLifecycle()
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Theme.colors.backGround)
+@Composable
+internal fun CheckResultContent(
+    state: CheckResultUiState,
+    onSwimmer: (Swimmer) -> Unit,
+    onPool: (PoolType) -> Unit,
+    onStyle: (SwimStyle) -> Unit,
+    onDistance: (Int) -> Unit,
+    onRetry: () -> Unit,
+    onToggleResult: () -> Unit,
+    onInput: (TextFieldValue) -> Unit,
+    onCheck: () -> Unit,
+    onDismissResult: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().background(Theme.colors.backGround).imePadding()
+            .verticalScroll(rememberScrollState()).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            stopWatchTime?.let {
-                viewModel.onInputChanged(TextFieldValue(it))
+            FilterGroup(stringResource(Res.string.genderGroup), modifier = Modifier.weight(1f)) {
+                SwimFilterChip(selected = state.filters.swimmer == Swimmer.Men,
+                    text = stringResource(Res.string.men), onClick = { onSwimmer(Swimmer.Men) })
+                SwimFilterChip(selected = state.filters.swimmer == Swimmer.Women,
+                    text = stringResource(Res.string.women), onClick = { onSwimmer(Swimmer.Women) })
             }
-            Spacer(Modifier.fillMaxWidth().height(4.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 2.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                SwimFilterChip(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 2.dp)
-                        .size(width = 120.dp, height = 40.dp),
-                    onClick = { viewModel.checkPool(PoolType.Short) },
-                    selected = poolType == PoolType.Short,
-                    text = stringResource(Res.string.shortWaterLength)
-                )
-                SwimFilterChip(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 2.dp)
-                        .size(width = 120.dp, height = 40.dp),
-                    onClick = { viewModel.checkPool(PoolType.Long) },
-                    selected = poolType == PoolType.Long,
-                    text = stringResource(Res.string.longWaterLength)
-                )
+            FilterGroup(stringResource(Res.string.poolGroup), modifier = Modifier.weight(1f)) {
+                SwimFilterChip(selected = state.filters.poolType == PoolType.Short,
+                    text = stringResource(Res.string.shortWaterLength), onClick = { onPool(PoolType.Short) })
+                SwimFilterChip(selected = state.filters.poolType == PoolType.Long,
+                    text = stringResource(Res.string.longWaterLength), onClick = { onPool(PoolType.Long) })
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 2.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                SwimFilterChip(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 2.dp)
-                        .size(width = 120.dp, height = 40.dp),
-                    onClick = { viewModel.setSwimmer(Swimmer.Women) },
-                    selected = swimmer == Swimmer.Women,
-                    text = stringResource(Res.string.women)
-                )
-
-                SwimFilterChip(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 2.dp)
-                        .size(width = 120.dp, height = 40.dp),
-                    onClick = { viewModel.setSwimmer(Swimmer.Men) },
-                    selected = swimmer == Swimmer.Men,
-                    text = stringResource(Res.string.men)
-                )
+        }
+        FilterGroup(stringResource(Res.string.styleGroup)) {
+            listOf(SwimStyle.FREESTYLE, SwimStyle.BACKSTROKE, SwimStyle.BREASTSTROKE,
+                SwimStyle.BUTTERFLY, SwimStyle.MEDLEY).forEach { style ->
+                SwimFilterChip(selected = state.filters.swimStyle == style,
+                    text = style.text, onClick = { onStyle(style) })
             }
-
-            SwimmingStyles(
-                modifier = Modifier.wrapContentWidth(),
-                viewModel = viewModel
-            )
-            DistanceMenu(distanceList, viewModel, distance)
-            TimerInput(viewModel)
-            ButtonSecondary(
-                text = stringResource(Res.string.checkResult),
-                onClick = {
-                    showResult = !showResult
-                    viewModel.checkResult()
-                },
-            )
-            if (showResult) {
-                ResultDialog(
-                    onConfirmation = { showResult = !showResult },
-                    result = result.value
-                )
+        }
+        FilterGroup(stringResource(Res.string.distanceTitle)) {
+            state.filters.distances.forEach { distance ->
+                SwimFilterChip(selected = state.filters.distance == distance,
+                    text = stringResource(Res.string.distanceMeters, distance),
+                    onClick = { onDistance(distance) })
             }
-            Spacer(modifier = Modifier.fillMaxWidth().height(8.dp))
-            ButtonPrimary(
-                onClick = { showAll = !showAll },
-                text = stringResource(Res.string.distanceResults)
-            )
-            if (showAll) {
-                event.value?.let {
-                    RankListDialog(
-                        onDismissRequest = { },
-                        onConfirmation = { showAll = !showAll },
-                        event = it,
-                        poolType = poolType
-                    )
+        }
+        Text(
+            stringResource(Res.string.standardsTitle), color = Theme.colors.textPrimary,
+            fontSize = 20.sp, fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.semantics { heading() }
+        )
+        when (state.status) {
+            StandardsStatus.Loading -> {
+                CircularProgressIndicator(color = Theme.colors.textPrimary)
+                StatusMessage(stringResource(Res.string.standardsLoading))
+            }
+            StandardsStatus.Error -> {
+                StatusMessage(stringResource(Res.string.standardsError))
+                TextButton(onClick = onRetry, modifier = Modifier.sizeIn(minHeight = 48.dp)) {
+                    Text(stringResource(Res.string.retryStandards), color = Theme.colors.textPrimary)
                 }
+            }
+            StandardsStatus.Unavailable -> {
+                StatusMessage(stringResource(Res.string.standardsUnavailable))
+                QualificationGrid(state.standards)
+            }
+            StandardsStatus.Ready -> QualificationGrid(state.standards)
+        }
+        val expanded = stringResource(if (state.resultExpanded) Res.string.sectionExpanded else Res.string.sectionCollapsed)
+        TextButton(
+            onClick = onToggleResult,
+            modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp)
+                .semantics { stateDescription = expanded }
+        ) {
+            Text(stringResource(Res.string.checkOwnResult), color = Theme.colors.textPrimary)
+        }
+        if (state.resultExpanded) {
+            TimerInput(value = state.timerInput, onValueChange = onInput)
+            Button(
+                onClick = onCheck,
+                enabled = state.canCheckResult,
+                modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Theme.colors.primary, contentColor = Theme.colors.textContrast,
+                    disabledContainerColor = Theme.colors.backGround2,
+                    disabledContentColor = Theme.colors.textSecondary
+                )
+            ) {
+                Text(stringResource(Res.string.checkResult))
             }
         }
     }
+    if (state.showResult) ResultDialog(onConfirmation = onDismissResult, result = state.result)
+}
 
+@Composable
+private fun FilterGroup(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title, color = Theme.colors.textPrimary, modifier = Modifier.semantics { heading() })
+        FlowRow(
+            modifier = Modifier.fillMaxWidth().selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) { content() }
+    }
+}
+
+@Composable
+private fun StatusMessage(message: String) {
+    Text(message, color = Theme.colors.textPrimary,
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+}
+
+@Preview(name = "Compact", widthDp = 360, heightDp = 800)
+@Preview(name = "Narrow", widthDp = 320, heightDp = 640)
+@Preview(name = "Tablet", widthDp = 840, heightDp = 800)
+@Preview(name = "Large text", widthDp = 360, heightDp = 800, fontScale = 2f)
+@Composable
+private fun StandardsPreview() {
+    StandardsThemePreview(isDark = false)
+}
+
+@Preview(name = "Dark", widthDp = 360, heightDp = 800)
+@Composable
+private fun StandardsDarkPreview() {
+    StandardsThemePreview(isDark = true)
+}
+
+@Composable
+private fun StandardsThemePreview(isDark: Boolean) {
+    SwimRankAppTheme(isDark = isDark) {
+        val state = androidx.compose.runtime.remember {
+            CheckResultUiState().withTable(RankTableStorage().rankTable(RankTableType.ShortWaterWomen))
+        }
+        CheckResultContent(
+            state = state, onSwimmer = {}, onPool = {}, onStyle = {}, onDistance = {},
+            onRetry = {}, onToggleResult = {}, onInput = {}, onCheck = {}, onDismissResult = {}
+        )
+    }
 }

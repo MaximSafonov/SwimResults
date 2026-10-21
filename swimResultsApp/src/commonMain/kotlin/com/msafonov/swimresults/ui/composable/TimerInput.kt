@@ -2,8 +2,7 @@ package com.msafonov.swimresults.ui.composable
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -13,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -22,22 +20,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.msafonov.swimresults.ui.theme.Theme
-import com.msafonov.swimresults.viewmodel.CheckResultViewModel
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import swimresults.swimresultsapp.generated.resources.Res
 import swimresults.swimresultsapp.generated.resources.swim_results_close
+import swimresults.swimresultsapp.generated.resources.clearTime
+import swimresults.swimresultsapp.generated.resources.timeInputLabel
 
 @Composable
 fun TimerInput(
-    viewModel: CheckResultViewModel
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit
 ) {
-    val textFieldValue by viewModel.timerInput.collectAsStateWithLifecycle()
-
     TextField(
-        modifier = Modifier.fillMaxWidth().height(84.dp)
-            .padding(vertical = 16.dp, horizontal = 24.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
         textStyle = TextStyle(
             color = Theme.colors.textPrimary,
             fontWeight = FontWeight.Medium,
@@ -45,23 +42,23 @@ fun TimerInput(
         ),
         colors = TextFieldDefaults.colors(
             focusedTextColor = Theme.colors.textPrimary,
-            unfocusedTextColor = Theme.colors.surface3,
+            unfocusedTextColor = Theme.colors.textPrimary,
             focusedIndicatorColor = Theme.colors.surface2,
             unfocusedIndicatorColor = Theme.colors.surface1,
             cursorColor = Theme.colors.surface3,
-            focusedContainerColor = Theme.colors.surface2,
-            unfocusedContainerColor = Theme.colors.surface1,
+            focusedContainerColor = Theme.colors.backGround2,
+            unfocusedContainerColor = Theme.colors.backGround2,
             focusedLabelColor = Theme.colors.primary,
             unfocusedLabelColor = Theme.colors.textSecondary,
         ),
         shape = RoundedCornerShape(8.dp),
         label = {
             Text(
-                text = "ММ:СС.МС",
-                color = Theme.colors.support20
+                text = stringResource(Res.string.timeInputLabel),
+                color = Theme.colors.textPrimary
             )
         },
-        value = textFieldValue,
+        value = value,
         onValueChange = { newValue ->
             val newTextRaw = newValue.text
             val digitsOnly = newTextRaw.filter { it.isDigit() }
@@ -73,7 +70,7 @@ fun TimerInput(
                     newValue.selection.start
                 )
 
-                viewModel.onInputChanged(
+                onValueChange(
                     TextFieldValue(
                         text = formatted,
                         selection = TextRange(cursorPosition)
@@ -86,14 +83,14 @@ fun TimerInput(
                 content = {
                     Icon(
                         painterResource(Res.drawable.swim_results_close),
-                        null,
+                        stringResource(Res.string.clearTime),
                         tint = Theme.colors.textPrimary,
                         modifier = Modifier.width(16.dp).height(16.dp)
                     )
                 },
                 onClick = {
-                    viewModel.onInputChanged(TextFieldValue())
-                          },
+                    onValueChange(TextFieldValue())
+                },
             )
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
