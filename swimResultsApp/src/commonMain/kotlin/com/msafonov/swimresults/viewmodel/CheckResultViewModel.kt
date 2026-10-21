@@ -67,8 +67,7 @@ class CheckResultViewModel(
                     _uiState.value = _uiState.value.copy(
                         timerInput = TextFieldValue(time, TextRange(time.length)),
                         resultExpanded = true,
-                        result = null,
-                        showResult = false
+                        resultDetails = null
                     )
                     repository.dropTime()
                 }
@@ -96,7 +95,7 @@ class CheckResultViewModel(
         val before = _uiState.value
         val filters = candidate.normalized()
         if (filters == before.filters) return
-        val next = before.copy(filters = filters, result = null, showResult = false)
+        val next = before.copy(filters = filters, resultDetails = null)
         if (filters.tableType == before.filters.tableType) {
             _uiState.value = if (before.status == StandardsStatus.Ready ||
                 before.status == StandardsStatus.Unavailable
@@ -116,7 +115,7 @@ class CheckResultViewModel(
         }
         _uiState.value = state.copy(
             status = StandardsStatus.Loading, eventTable = emptyList(), currentEvent = null,
-            standards = qualificationStandards(null), result = null, showResult = false
+            standards = qualificationStandards(null), resultDetails = null
         )
         tableJob = viewModelScope.launch {
             try {
@@ -142,7 +141,7 @@ class CheckResultViewModel(
 
     fun onInputChanged(newValue: TextFieldValue) {
         if (_uiState.value.timerInput == newValue) return
-        _uiState.value = _uiState.value.copy(timerInput = newValue, result = null, showResult = false)
+        _uiState.value = _uiState.value.copy(timerInput = newValue, resultDetails = null)
     }
 
     fun toggleResultExpanded() {
@@ -150,7 +149,7 @@ class CheckResultViewModel(
     }
 
     fun dismissResult() {
-        _uiState.value = _uiState.value.copy(showResult = false)
+        _uiState.value = _uiState.value.copy(resultDetails = null)
     }
 
     fun checkResult() {
@@ -160,6 +159,8 @@ class CheckResultViewModel(
             eventTable = state.eventTable, swimStyle = state.filters.swimStyle,
             distance = state.filters.distance, result = state.timerInput.text
         )
-        _uiState.value = state.copy(result = checked, showResult = true)
+        _uiState.value = state.copy(
+            resultDetails = buildResultDetails(state.filters, state.timerInput.text, state.currentEvent, checked)
+        )
     }
 }

@@ -21,6 +21,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
@@ -87,6 +89,8 @@ internal fun CheckResultContent(
     onCheck: () -> Unit,
     onDismissResult: () -> Unit
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     Column(
         modifier = Modifier.fillMaxSize().background(Theme.colors.backGround).imePadding()
             .verticalScroll(rememberScrollState()).padding(16.dp),
@@ -156,7 +160,11 @@ internal fun CheckResultContent(
         if (state.resultExpanded) {
             TimerInput(value = state.timerInput, onValueChange = onInput)
             Button(
-                onClick = onCheck,
+                onClick = {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                    onCheck()
+                },
                 enabled = state.canCheckResult,
                 modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -169,7 +177,7 @@ internal fun CheckResultContent(
             }
         }
     }
-    if (state.showResult) ResultDialog(onConfirmation = onDismissResult, result = state.result)
+    state.resultDetails?.let { ResultDialog(details = it, onDismiss = onDismissResult) }
 }
 
 @Composable

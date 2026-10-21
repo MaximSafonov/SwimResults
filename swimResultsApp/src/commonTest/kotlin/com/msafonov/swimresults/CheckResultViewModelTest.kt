@@ -229,6 +229,27 @@ class CheckResultViewModelTest {
     }
 
     @Test
+    fun resultDetailsCaptureCheckedParametersAndDismissWithoutChangingSelection() {
+        val vm = viewModel()
+        finishLoad()
+        vm.onInputChanged(TextFieldValue("0:29.00"))
+        vm.checkResult()
+        val details = vm.uiState.value.resultDetails
+        assertNotNull(details)
+        assertEquals(50, details.distance)
+        assertEquals(SwimStyle.FREESTYLE, details.swimStyle)
+        assertEquals(Swimmer.Women, details.swimmer)
+        assertEquals(PoolType.Short, details.poolType)
+        assertEquals("0:29.00", details.input)
+        val reads = tables.reads.size
+        vm.dismissResult()
+        assertNull(vm.uiState.value.resultDetails)
+        assertEquals(50, vm.uiState.value.filters.distance)
+        assertEquals("0:29.00", vm.uiState.value.timerInput.text)
+        assertEquals(reads, tables.reads.size)
+    }
+
+    @Test
     fun pausedBackStackViewModelCannotConsumeNextScreensStopwatchHandoff() {
         val old = viewModel()
         finishLoad()

@@ -48,7 +48,7 @@ data class QualificationStandard(val rank: SwimmingRank, val time: Duration?)
 
 fun qualificationStandards(event: SwimEvent?): List<QualificationStandard> {
     val timesByRank = event?.results?.entries?.associate { (time, rank) -> rank to time }.orEmpty()
-    return SwimmingRank.entries.reversed().map { QualificationStandard(it, timesByRank[it]) }
+    return swimmingRankHierarchy.map { QualificationStandard(it, timesByRank[it]) }
 }
 
 data class CheckResultUiState(
@@ -58,10 +58,11 @@ data class CheckResultUiState(
     val currentEvent: SwimEvent? = null,
     val standards: List<QualificationStandard> = qualificationStandards(null),
     val timerInput: TextFieldValue = TextFieldValue(),
-    val result: CheckedResult? = null,
-    val showResult: Boolean = false,
+    val resultDetails: ResultDetailsUiState? = null,
     val resultExpanded: Boolean = false
 ) {
+    val result: CheckedResult? get() = resultDetails?.checkedResult
+    val showResult: Boolean get() = resultDetails != null
     val canCheckResult: Boolean
         get() = status == StandardsStatus.Ready && currentEvent != null &&
             timerInput.text.any { it.isDigit() }
