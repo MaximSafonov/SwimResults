@@ -46,6 +46,9 @@ kotlin {
             implementation(libs.compose.navigation)
             implementation(libs.compose.material.icons)
             implementation(libs.kotlinx.serialization)
+            implementation(libs.androidx.datastore.preferences)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.okio)
 
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
