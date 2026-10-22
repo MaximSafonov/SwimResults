@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
@@ -53,8 +52,8 @@ fun DistanceMenu(distanceList: List<Int>, viewModel: CheckResultViewModel, dista
             )
             DropdownMenu(
                 modifier = Modifier.width(120.dp),
-                shape = RoundedCornerShape(16.dp),
-                containerColor = Theme.colors.surface2,
+                shape = Theme.shapes.medium,
+                containerColor = Theme.colors.backGround2,
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {

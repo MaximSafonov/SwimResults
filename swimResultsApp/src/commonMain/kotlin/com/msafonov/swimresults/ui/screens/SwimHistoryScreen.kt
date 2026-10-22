@@ -56,7 +56,12 @@ fun SwimHistoryScreen(
     Scaffold(
         containerColor = Theme.colors.backGround,
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddSwim) {
+            FloatingActionButton(
+                onClick = onAddSwim,
+                shape = Theme.shapes.medium,
+                containerColor = Theme.colors.primary,
+                contentColor = Theme.colors.textContrast
+            ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.historyAdd))
             }
         }
@@ -65,7 +70,7 @@ fun SwimHistoryScreen(
             HistoryTableHeader(horizontalScrollState)
             when {
                 state.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = Theme.colors.textPrimary)
                 }
                 state.error -> Text(stringResource(Res.string.historyLoadError), color = Theme.colors.textPrimary)
                 state.groups.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -79,7 +84,8 @@ fun SwimHistoryScreen(
                         items(group.swims, key = { "swim-${it.id}" }) { swim ->
                             Row(
                                 modifier = Modifier.fillMaxWidth().horizontalScroll(horizontalScrollState)
-                                    .background(Theme.colors.surface1).padding(vertical = 10.dp),
+                                    .background(Theme.colors.backGround2, Theme.shapes.small)
+                                    .padding(vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Cell("${swim.distanceMeters} м ${swim.style.text}", 176.dp)

@@ -48,17 +48,19 @@ fun SwimResultsApp() {
                             icon = {
                                 Icon(
                                     imageVector = navItem.icon,
-                                    tint = Theme.colors.textPrimary,
                                     contentDescription = stringResource(navItem.title)
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = Theme.colors.surface3
+                                selectedIconColor = Theme.colors.textContrast,
+                                unselectedIconColor = Theme.colors.textSecondary,
+                                selectedTextColor = Theme.colors.textPrimary,
+                                unselectedTextColor = Theme.colors.textSecondary,
+                                indicatorColor = Theme.colors.primary
                             ),
                             label = {
                                 Text(
-                                    text = stringResource(navItem.title),
-                                    color = Theme.colors.textPrimary
+                                    text = stringResource(navItem.title)
                                 )
                             },
                             selected = currentRoute == navItem.screen.route,

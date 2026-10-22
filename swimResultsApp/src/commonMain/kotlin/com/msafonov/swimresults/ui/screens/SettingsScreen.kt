@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -52,8 +51,8 @@ fun SettingsScreen() {
                 .fillMaxWidth()
                 .padding(16.dp)
                 .background(
-                    color = Theme.colors.surface1,
-                    shape = RoundedCornerShape(8.dp)
+                    color = Theme.colors.backGround2,
+                    shape = Theme.shapes.medium
                 ),
         ) {
             Text(
@@ -67,11 +66,11 @@ fun SettingsScreen() {
                 checked = isDark,
                 onCheckedChange = null,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Theme.colors.surface1,
-                    uncheckedThumbColor = Theme.colors.support60,
-                    checkedTrackColor = Theme.colors.surface3,
-                    uncheckedTrackColor = Theme.colors.support20,
-                    uncheckedBorderColor = Theme.colors.surface3
+                    checkedThumbColor = Theme.colors.textContrast,
+                    uncheckedThumbColor = Theme.colors.textSecondary,
+                    checkedTrackColor = Theme.colors.primary,
+                    uncheckedTrackColor = Theme.colors.backGround2,
+                    uncheckedBorderColor = Theme.colors.textSecondary
                 )
             )
             Text(

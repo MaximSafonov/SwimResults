@@ -71,8 +71,8 @@ val AttentionDark = Color(0xFFFABD1B)
 val AttentionLight = Color(0xFFFABD1B)
 
 
-val ErrorPrimaryDark = Color(0xFF930006)
-val ErrorPrimaryLight = Color(0xFF930006)
+val ErrorPrimaryDark = Color(0xFFFFB4A9)
+val ErrorPrimaryLight = Color(0xFFBA1B1B)
 
 val TextPrimaryDark = Color(0xfff2ffff)
 val TextPrimaryLight = Color(0xFF002F36)

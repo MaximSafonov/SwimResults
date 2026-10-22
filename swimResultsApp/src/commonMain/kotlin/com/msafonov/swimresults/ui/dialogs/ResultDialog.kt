@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,7 +46,7 @@ fun ResultDialog(details: ResultDetailsUiState, onDismiss: () -> Unit) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        shape = Theme.shapes.large.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)),
         containerColor = Theme.colors.backGround,
         contentColor = Theme.colors.textPrimary,
         dragHandle = { BottomSheetDefaults.DragHandle(color = Theme.colors.textSecondary) }
@@ -134,7 +134,7 @@ private fun StandardsTable(details: ResultDetailsUiState, achieved: SwimmingRank
 private fun TableRow(first: String, second: String, third: String, highlighted: Boolean, description: String?) {
     val background = if (highlighted) Theme.colors.primary else Theme.colors.backGround2
     val foreground = if (highlighted) Theme.colors.textContrast else Theme.colors.textPrimary
-    Row(Modifier.fillMaxWidth().background(background, RoundedCornerShape(8.dp)).padding(8.dp)
+    Row(Modifier.fillMaxWidth().background(background, Theme.shapes.small).padding(8.dp)
         .then(if (description != null) Modifier.semantics(mergeDescendants = true) { contentDescription = description } else Modifier),
         verticalAlignment = Alignment.CenterVertically) {
         Text(first, Modifier.weight(4f), color = foreground, fontWeight = if (highlighted) FontWeight.Bold else FontWeight.Normal)
@@ -145,7 +145,7 @@ private fun TableRow(first: String, second: String, third: String, highlighted: 
 
 @Composable
 private fun ComparisonMessage(resource: org.jetbrains.compose.resources.StringResource) {
-    Surface(color = Theme.colors.backGround2, shape = RoundedCornerShape(8.dp)) {
+    Surface(color = Theme.colors.backGround2, shape = Theme.shapes.small) {
         Text(stringResource(resource), Modifier.fillMaxWidth().padding(12.dp), color = Theme.colors.textPrimary)
     }
 }

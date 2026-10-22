@@ -1,5 +1,6 @@
 package com.msafonov.swimresults.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
@@ -44,6 +46,7 @@ import com.msafonov.swimresults.data.model.Swimmer
 import com.msafonov.swimresults.ui.composable.SwimFilterChip
 import com.msafonov.swimresults.ui.composable.TimerInput
 import com.msafonov.swimresults.ui.theme.Theme
+import com.msafonov.swimresults.ui.theme.SwimComponentDefaults
 import com.msafonov.swimresults.viewmodel.AddSwimResultViewModel
 import com.msafonov.swimresults.viewmodel.AddSwimResultError
 import org.jetbrains.compose.resources.stringResource
@@ -92,7 +95,8 @@ fun AddSwimResultScreen(
         }
     }
     Column(
-        Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
+        Modifier.fillMaxSize().background(Theme.colors.backGround)
+            .imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -112,6 +116,8 @@ fun AddSwimResultScreen(
                 value = state.newCompetitionName,
                 onValueChange = viewModel::setCompetitionName,
                 modifier = Modifier.fillMaxWidth(),
+                shape = Theme.shapes.small,
+                colors = SwimComponentDefaults.outlinedTextFieldColors(),
                 label = { Text(stringResource(Res.string.competitionNameLabel)) },
                 singleLine = true
             )
@@ -158,14 +164,19 @@ fun AddSwimResultScreen(
                 AddSwimResultError.SaveFailure -> Res.string.swimSaveFailure
                 AddSwimResultError.Validation -> Res.string.swimSaveError
             }
-            Text(stringResource(message), color = Theme.colors.textPrimary)
+            Text(stringResource(message), color = Theme.colors.errorPrimary)
         }
         Button(
             onClick = { viewModel.save(onBack) },
             enabled = state.canSave,
-            modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp)
+            modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
+            colors = SwimComponentDefaults.primaryButtonColors()
         ) {
-            if (state.saving) CircularProgressIndicator()
+            if (state.saving) CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = Theme.colors.textSecondary,
+                strokeWidth = 2.dp
+            )
             else Text(stringResource(Res.string.saveSwim))
         }
     }
@@ -187,10 +198,17 @@ private fun CompetitionSelector(
             onValueChange = {},
             readOnly = true,
             modifier = Modifier.fillMaxWidth().menuAnchor(),
+            shape = Theme.shapes.small,
+            colors = SwimComponentDefaults.outlinedTextFieldColors(),
             label = { Text(stringResource(Res.string.competitionLabel)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) }
         )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            shape = Theme.shapes.medium,
+            containerColor = Theme.colors.backGround2
+        ) {
             DropdownMenuItem(
                 text = { Text(stringResource(Res.string.competitionNew)) },
                 onClick = { onNew(); expanded = false }
@@ -224,6 +242,8 @@ private fun DateField(value: String, label: String, onChange: (String) -> Unit) 
         value = display,
         onValueChange = { onChange(parseDate(it)) },
         modifier = Modifier.fillMaxWidth(),
+        shape = Theme.shapes.small,
+        colors = SwimComponentDefaults.outlinedTextFieldColors(),
         label = { Text(label) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,

@@ -14,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,6 +42,7 @@ import com.msafonov.swimresults.ui.composable.SwimFilterChip
 import com.msafonov.swimresults.ui.composable.TimerInput
 import com.msafonov.swimresults.ui.dialogs.ResultDialog
 import com.msafonov.swimresults.ui.theme.Theme
+import com.msafonov.swimresults.ui.theme.SwimComponentDefaults
 import com.msafonov.swimresults.ui.theme.SwimRankAppTheme
 import com.msafonov.swimresults.viewmodel.CheckResultUiState
 import com.msafonov.swimresults.viewmodel.withTable
@@ -167,11 +167,7 @@ internal fun CheckResultContent(
                 },
                 enabled = state.canCheckResult,
                 modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Theme.colors.primary, contentColor = Theme.colors.textContrast,
-                    disabledContainerColor = Theme.colors.backGround2,
-                    disabledContentColor = Theme.colors.textSecondary
-                )
+                colors = SwimComponentDefaults.primaryButtonColors()
             ) {
                 Text(stringResource(Res.string.checkResult))
             }

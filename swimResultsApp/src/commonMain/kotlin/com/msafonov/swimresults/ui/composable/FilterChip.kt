@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,7 +25,7 @@ fun SwimFilterChip(
     Surface(
         modifier = modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
             .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
+        shape = Theme.shapes.medium,
         color = if (selected) Theme.colors.primary else Theme.colors.backGround2,
         contentColor = if (selected) Theme.colors.textContrast else Theme.colors.textPrimary,
         border = BorderStroke(
