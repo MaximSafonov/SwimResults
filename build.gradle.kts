@@ -1,5 +1,5 @@
 plugins {
-    // this is necessary to avoid the plugins to be loaded multiple times
+    // this is necessary to avoid the plugins being loaded multiple times
     // in each subproject's classloader
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.androidLibrary) apply false
@@ -9,4 +9,6 @@ plugins {
     alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
     alias(libs.plugins.androidLint) apply false
     alias(libs.plugins.jetbrainsKotlinJvm) apply false
+    alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.androidxRoom) apply false
 }

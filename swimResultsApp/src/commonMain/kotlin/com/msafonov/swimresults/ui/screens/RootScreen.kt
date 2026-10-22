@@ -36,12 +36,12 @@ fun SwimResultsApp() {
         Scaffold(
             containerColor = Theme.colors.backGround,
             bottomBar = {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+                if (currentRoute != Screen.AddSwimResult.route) {
                 NavigationBar(
                     containerColor = Theme.colors.backGround,
                 ) {
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentRoute = navBackStackEntry?.destination?.route
-
                     bottomNavItems.forEach { navItem ->
                         NavigationBarItem(
                             alwaysShowLabel = false,
@@ -77,6 +77,7 @@ fun SwimResultsApp() {
                         )
                     }
                 }
+                }
             }
         ) { innerPadding ->
             NavHost(
@@ -104,6 +105,20 @@ fun SwimResultsApp() {
                     enterTransition = { fadeIn(animationSpec = tween(300)) },
                     exitTransition = { fadeOut(animationSpec = tween(300)) }
                 ) { SettingsScreen() }
+                composable(
+                    route = Screen.History.route,
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) {
+                    SwimHistoryScreen(onAddSwim = { navController.navigate(Screen.AddSwimResult.route) })
+                }
+                composable(
+                    route = Screen.AddSwimResult.route,
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) {
+                    AddSwimResultScreen(onBack = { navController.popBackStack() })
+                }
             }
         }
     }

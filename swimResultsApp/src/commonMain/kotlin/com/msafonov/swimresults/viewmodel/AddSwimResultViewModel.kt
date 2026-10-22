@@ -1,0 +1,141 @@
+package com.msafonov.swimresults.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.msafonov.swimresults.data.model.Constants
+import com.msafonov.swimresults.data.model.PoolType
+import com.msafonov.swimresults.data.model.SwimStyle
+import com.msafonov.swimresults.data.model.Swimmer
+import com.msafonov.swimresults.data.repository.NewSwimRecord
+import com.msafonov.swimresults.data.repository.SwimHistoryRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
+import kotlin.time.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
+import org.koin.core.annotation.KoinViewModel
+
+data class AddSwimResultUiState(
+    val competitions: List<com.msafonov.swimresults.data.model.SwimCompetition> = emptyList(),
+    val selectedCompetitionId: Long? = null,
+    val newCompetitionName: String = "",
+    val swimDate: String = todayIsoDate(),
+    val swimmer: Swimmer = Swimmer.Women,
+    val pool: PoolType = PoolType.Short,
+    val style: SwimStyle = SwimStyle.FREESTYLE,
+    val distance: Int = Constants.M50,
+    val time: String = "",
+    val error: AddSwimResultError? = null,
+    val saving: Boolean = false,
+    val saved: Boolean = false
+) {
+    val distances: List<Int>
+        get() = when (style) {
+            SwimStyle.FREESTYLE -> Constants.FREESTYLE_LIST
+            SwimStyle.MEDLEY -> if (pool == PoolType.Short) Constants.MEDLEY_LIST_SHORT else Constants.MEDLEY_LIST_LONG
+            else -> Constants.COMMON_LIST
+        }
+
+    val selectedCompetition: com.msafonov.swimresults.data.model.SwimCompetition?
+        get() = competitions.firstOrNull { it.id == selectedCompetitionId }
+
+    val competitionName: String
+        get() = selectedCompetition?.name ?: newCompetitionName
+
+    val canSave: Boolean
+        get() = !saving && competitionName.isNotBlank() && isIsoDate(swimDate) &&
+            distance in distances && time.isNotBlank() &&
+            SwimHistoryRepository.parseTimeCentiseconds(time) != null
+}
+
+enum class AddSwimResultError { Validation, LoadCompetitions, SaveFailure }
+
+private fun todayIsoDate(): String =
+    Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()
+
+internal fun isIsoDate(value: String): Boolean = runCatching {
+    kotlinx.datetime.LocalDate.parse(value)
+}.isSuccess
+
+@KoinViewModel
+class AddSwimResultViewModel(private val repository: SwimHistoryRepository) : ViewModel() {
+    private val _uiState = MutableStateFlow(AddSwimResultUiState())
+    val uiState = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            repository.competitions.catch {
+                _uiState.value = _uiState.value.copy(error = AddSwimResultError.LoadCompetitions)
+            }.collect { _uiState.value = _uiState.value.copy(competitions = it) }
+        }
+    }
+
+    fun selectCompetition(id: Long?) {
+        val selected = _uiState.value.competitions.firstOrNull { it.id == id }
+        _uiState.value = _uiState.value.copy(
+            selectedCompetitionId = id,
+            newCompetitionName = if (selected == null) _uiState.value.newCompetitionName else "",
+            swimDate = selected?.date ?: _uiState.value.swimDate,
+            error = null
+        )
+    }
+
+    fun startNewCompetition() {
+        _uiState.value = _uiState.value.copy(selectedCompetitionId = null, error = null)
+    }
+
+    fun setCompetitionName(value: String) = update { copy(newCompetitionName = value, selectedCompetitionId = null, error = null) }
+    fun setSwimDate(value: String) = update { copy(swimDate = value, error = null) }
+    fun setSwimmer(value: Swimmer) = update { copy(swimmer = value) }
+    fun setPool(value: PoolType) = update { copy(pool = value, distance = normalizedDistance(distance, style, value)) }
+    fun setStyle(value: SwimStyle) = update { copy(style = value, distance = normalizedDistance(distance, value, pool)) }
+    fun setDistance(value: Int) = update { if (value in distances) copy(distance = value) else this }
+    fun setTime(value: String) = update { copy(time = value.filter { it.isDigit() || it == ':' || it == '.' }.take(8), error = null) }
+
+    fun save(onSaved: () -> Unit) {
+        val state = _uiState.value
+        if (state.saving) return
+        if (!state.canSave) {
+            _uiState.value = state.copy(error = AddSwimResultError.Validation)
+            return
+        }
+        _uiState.value = state.copy(saving = true, error = null)
+        viewModelScope.launch {
+            try {
+                repository.save(
+                    NewSwimRecord(
+                        competitionName = state.competitionName,
+                        swimDate = state.swimDate,
+                        distanceMeters = state.distance,
+                        style = state.style,
+                        gender = state.swimmer,
+                        pool = state.pool,
+                        time = state.time
+                    )
+                )
+                _uiState.value = state.copy(saving = false, saved = true)
+                onSaved()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                _uiState.value = state.copy(saving = false, error = AddSwimResultError.SaveFailure)
+            }
+        }
+    }
+
+    private fun update(block: AddSwimResultUiState.() -> AddSwimResultUiState) {
+        _uiState.value = _uiState.value.block()
+    }
+
+    private fun normalizedDistance(distance: Int, style: SwimStyle, pool: PoolType): Int {
+        val allowed = when (style) {
+            SwimStyle.FREESTYLE -> Constants.FREESTYLE_LIST
+            SwimStyle.MEDLEY -> if (pool == PoolType.Short) Constants.MEDLEY_LIST_SHORT else Constants.MEDLEY_LIST_LONG
+            else -> Constants.COMMON_LIST
+        }
+        return distance.takeIf { it in allowed } ?: allowed.first()
+    }
+}
