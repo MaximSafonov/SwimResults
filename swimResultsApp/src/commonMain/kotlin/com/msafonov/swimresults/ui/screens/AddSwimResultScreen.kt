@@ -53,6 +53,10 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import swimresults.swimresultsapp.generated.resources.Res
 import swimresults.swimresultsapp.generated.resources.addSwimTitle
+import swimresults.swimresultsapp.generated.resources.editSwimTitle
+import swimresults.swimresultsapp.generated.resources.swimRecordLoading
+import swimresults.swimresultsapp.generated.resources.swimRecordNotFound
+import swimresults.swimresultsapp.generated.resources.swimRecordLoadError
 import swimresults.swimresultsapp.generated.resources.cancel
 import swimresults.swimresultsapp.generated.resources.competitionChoose
 import swimresults.swimresultsapp.generated.resources.competitionLabel
@@ -82,9 +86,11 @@ import swimresults.swimresultsapp.generated.resources.styleMedley
 @Composable
 fun AddSwimResultScreen(
     onBack: () -> Unit,
+    recordId: Long? = null,
     viewModel: AddSwimResultViewModel = koinViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(viewModel, recordId) { viewModel.initialize(recordId) }
     var formattedTime by remember(viewModel) { mutableStateOf(TextFieldValue(text = state.time)) }
     LaunchedEffect(state.time) {
         if (formattedTime.text != state.time) {
@@ -100,11 +106,21 @@ fun AddSwimResultScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(stringResource(Res.string.addSwimTitle), color = Theme.colors.textPrimary,
+            Text(stringResource(if (recordId == null) Res.string.addSwimTitle else Res.string.editSwimTitle), color = Theme.colors.textPrimary,
                 fontSize = 22.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() })
             TextButton(onClick = onBack, modifier = Modifier.sizeIn(minHeight = 48.dp)) {
                 Text(stringResource(Res.string.cancel), color = Theme.colors.textPrimary)
             }
+        }
+        if (state.loading || !state.ready) {
+            if (state.loading) {
+                CircularProgressIndicator(color = Theme.colors.textPrimary)
+                Text(stringResource(Res.string.swimRecordLoading), color = Theme.colors.textPrimary)
+            } else {
+                Text(stringResource(if (state.error == AddSwimResultError.NotFound)
+                    Res.string.swimRecordNotFound else Res.string.swimRecordLoadError), color = Theme.colors.errorPrimary)
+            }
+            return@Column
         }
         CompetitionSelector(
             state = state,
@@ -154,8 +170,10 @@ fun AddSwimResultScreen(
         TimerInput(
             value = formattedTime,
             onValueChange = { value ->
-                formattedTime = value
-                viewModel.setTime(value.text)
+                if (!state.saving && !state.saved) {
+                    formattedTime = value
+                    viewModel.setTime(value.text)
+                }
             }
         )
         state.error?.let {
@@ -163,6 +181,8 @@ fun AddSwimResultScreen(
                 AddSwimResultError.LoadCompetitions -> Res.string.swimCompetitionsLoadError
                 AddSwimResultError.SaveFailure -> Res.string.swimSaveFailure
                 AddSwimResultError.Validation -> Res.string.swimSaveError
+                AddSwimResultError.NotFound -> Res.string.swimRecordNotFound
+                AddSwimResultError.LoadRecord -> Res.string.swimRecordLoadError
             }
             Text(stringResource(message), color = Theme.colors.errorPrimary)
         }

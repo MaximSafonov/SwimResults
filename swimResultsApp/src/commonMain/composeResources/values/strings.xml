@@ -120,4 +120,15 @@
     <string name="rankShortFirstJunior">I юн.</string>
     <string name="rankShortSecondJunior">II юн.</string>
     <string name="rankShortThirdJunior">III юн.</string>
+    <string name="historyEdit">Скорректировать</string>
+    <string name="historyShare">Поделиться</string>
+    <string name="historyDelete">Удалить</string>
+    <string name="historyDeleteError">Не удалось удалить заплыв. Попробуйте ещё раз.</string>
+    <string name="historyShareError">Не удалось открыть меню отправки. Попробуйте ещё раз.</string>
+    <string name="historyCompetitionDate">Дата соревнования</string>
+    <string name="historyMeters">м</string>
+    <string name="editSwimTitle">Скорректировать заплыв</string>
+    <string name="swimRecordLoading">Загрузка заплыва…</string>
+    <string name="swimRecordNotFound">Заплыв больше не существует. Вернитесь в историю.</string>
+    <string name="swimRecordLoadError">Не удалось загрузить заплыв. Откройте его из истории ещё раз.</string>
 </resources>

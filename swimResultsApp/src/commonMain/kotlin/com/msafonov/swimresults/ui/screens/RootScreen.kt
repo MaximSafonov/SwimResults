@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -24,6 +26,7 @@ import com.msafonov.swimresults.ui.navigation.bottomNavItems
 import com.msafonov.swimresults.ui.theme.SwimRankAppTheme
 import com.msafonov.swimresults.ui.theme.Theme
 import com.msafonov.swimresults.viewmodel.SettingsViewModel
+import com.msafonov.swimresults.viewmodel.AddSwimResultViewModel
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -38,7 +41,7 @@ fun SwimResultsApp() {
             bottomBar = {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
-                if (currentRoute != Screen.AddSwimResult.route) {
+                if (currentRoute != Screen.AddSwimResult.route && currentRoute != Screen.EditSwimResult.route) {
                 NavigationBar(
                     containerColor = Theme.colors.backGround,
                 ) {
@@ -112,14 +115,40 @@ fun SwimResultsApp() {
                     enterTransition = { fadeIn(animationSpec = tween(300)) },
                     exitTransition = { fadeOut(animationSpec = tween(300)) }
                 ) {
-                    SwimHistoryScreen(onAddSwim = { navController.navigate(Screen.AddSwimResult.route) })
+                    SwimHistoryScreen(
+                        onAddSwim = { navController.navigate(Screen.AddSwimResult.route) { launchSingleTop = true } },
+                        onEditSwim = { id -> navController.navigate(Screen.EditSwimResult.route(id)) { launchSingleTop = true } }
+                    )
                 }
                 composable(
                     route = Screen.AddSwimResult.route,
                     enterTransition = { fadeIn(animationSpec = tween(300)) },
                     exitTransition = { fadeOut(animationSpec = tween(300)) }
-                ) {
-                    AddSwimResultScreen(onBack = { navController.popBackStack() })
+                ) { entry ->
+                    AddSwimResultScreen(
+                        onBack = {
+                            if (navController.currentBackStackEntry == entry) {
+                                navController.popBackStack()
+                            }
+                        },
+                        viewModel = koinViewModel<AddSwimResultViewModel>(viewModelStoreOwner = entry)
+                    )
+                }
+                composable(
+                    route = Screen.EditSwimResult.route,
+                    arguments = listOf(navArgument("recordId") { type = NavType.LongType }),
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) { entry ->
+                    AddSwimResultScreen(
+                        recordId = checkNotNull(NavType.LongType[checkNotNull(entry.arguments), "recordId"]),
+                        onBack = {
+                            if (navController.currentBackStackEntry == entry) {
+                                navController.popBackStack()
+                            }
+                        },
+                        viewModel = koinViewModel<AddSwimResultViewModel>(viewModelStoreOwner = entry)
+                    )
                 }
             }
         }

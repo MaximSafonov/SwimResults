@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Transaction
+import androidx.room.Update
 import com.msafonov.swimresults.data.local.entity.CompetitionEntity
 import com.msafonov.swimresults.data.local.entity.SwimRecordEntity
 import kotlinx.coroutines.flow.Flow
@@ -37,6 +38,35 @@ abstract class SwimHistoryDao {
 
     @Insert
     abstract suspend fun insertSwim(entity: SwimRecordEntity): Long
+
+    @Query("SELECT * FROM swim_records WHERE id = :id")
+    abstract suspend fun getSwim(id: Long): SwimRecordEntity?
+
+    @Update
+    abstract suspend fun updateSwim(entity: SwimRecordEntity): Int
+
+    @Query("DELETE FROM swim_records WHERE id = :id")
+    abstract suspend fun deleteSwim(id: Long): Int
+
+    @Transaction
+    open suspend fun updateSwimWithCompetition(
+        swim: SwimRecordEntity,
+        selectedCompetitionId: Long?,
+        competitionName: String,
+        competitionDate: String
+    ): Int {
+        val current = getSwim(swim.id) ?: return 0
+        val competition = if (selectedCompetitionId != null) {
+            checkNotNull(getCompetition(selectedCompetitionId)) { "Competition no longer exists" }
+        } else {
+            getOrCreateCompetition(competitionName, competitionDate)
+        }
+        val updated = swim.copy(competitionId = competition.id)
+        if (current == updated) return 1
+        // Throw inside the transaction so a failed update cannot leave a new competition behind.
+        check(updateSwim(updated) == 1) { "Swim no longer exists" }
+        return 1
+    }
 
     @Transaction
     open suspend fun getOrCreateCompetition(name: String, date: String): CompetitionEntity {

@@ -1,6 +1,7 @@
 package com.msafonov.swimresults.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,12 +17,22 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.CancellationException
+import com.msafonov.swimresults.historyShareText
+import com.msafonov.swimresults.rememberHistoryShareLauncher
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +45,11 @@ import com.msafonov.swimresults.ui.theme.Theme
 import com.msafonov.swimresults.viewmodel.SwimHistoryViewModel
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import swimresults.swimresultsapp.generated.resources.historyEdit
+import swimresults.swimresultsapp.generated.resources.historyShare
+import swimresults.swimresultsapp.generated.resources.historyDelete
+import swimresults.swimresultsapp.generated.resources.historyDeleteError
+import swimresults.swimresultsapp.generated.resources.historyShareError
 import swimresults.swimresultsapp.generated.resources.Res
 import swimresults.swimresultsapp.generated.resources.historyAdd
 import swimresults.swimresultsapp.generated.resources.historyDistance
@@ -49,9 +65,31 @@ import swimresults.swimresultsapp.generated.resources.longWaterLength
 @Composable
 fun SwimHistoryScreen(
     onAddSwim: () -> Unit,
+    onEditSwim: (Long) -> Unit,
     viewModel: SwimHistoryViewModel = koinViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var menuRecordId by remember { mutableStateOf<Long?>(null) }
+    var pendingShare by remember { mutableStateOf<String?>(null) }
+    var shareError by remember { mutableStateOf(false) }
+    val share = rememberHistoryShareLauncher()
+    LaunchedEffect(state.groups) {
+        if (state.groups.none { group -> group.swims.any { it.id == menuRecordId } }) menuRecordId = null
+    }
+    LaunchedEffect(pendingShare) {
+        val text = pendingShare ?: return@LaunchedEffect
+        try {
+            // Let the dropdown leave composition before opening the system UI.
+            withFrameNanos { }
+            share(text)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            shareError = true
+        } finally {
+            pendingShare = null
+        }
+    }
     val horizontalScrollState = rememberScrollState()
     Scaffold(
         containerColor = Theme.colors.backGround,
@@ -67,6 +105,8 @@ fun SwimHistoryScreen(
         }
     ) { insets ->
         Column(Modifier.fillMaxSize().padding(insets).padding(horizontal = 16.dp, vertical = 12.dp)) {
+            if (state.actionError) Text(stringResource(Res.string.historyDeleteError), color = Theme.colors.errorPrimary)
+            if (shareError) Text(stringResource(Res.string.historyShareError), color = Theme.colors.errorPrimary)
             HistoryTableHeader(horizontalScrollState)
             when {
                 state.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -82,16 +122,44 @@ fun SwimHistoryScreen(
                             CompetitionHeading(group)
                         }
                         items(group.swims, key = { "swim-${it.id}" }) { swim ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().horizontalScroll(horizontalScrollState)
-                                    .background(Theme.colors.backGround2, Theme.shapes.small)
-                                    .padding(vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Cell("${swim.distanceMeters} м ${swim.style.text}", 176.dp)
-                                Cell(stringResource(if (swim.poolLengthMeters == 25) Res.string.shortWaterLength else Res.string.longWaterLength), 72.dp)
-                                Cell(formatTime(swim.timeCentiseconds), 92.dp)
-                                Cell(swim.qualification?.text ?: stringResource(Res.string.historyNoQualification), 120.dp)
+                            val shareText = historyShareText(group.competition, swim)
+                            val available = swim.id !in state.deletingIds && pendingShare == null
+                            Box(Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().horizontalScroll(horizontalScrollState)
+                                        .background(Theme.colors.backGround2, Theme.shapes.small)
+                                        .clickable(enabled = available) { menuRecordId = swim.id }
+                                        .padding(vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Cell("${swim.distanceMeters} м ${swim.style.text}", 176.dp)
+                                    Cell(stringResource(if (swim.poolLengthMeters == 25) Res.string.shortWaterLength else Res.string.longWaterLength), 72.dp)
+                                    Cell(formatTime(swim.timeCentiseconds), 92.dp)
+                                    Cell(swim.qualification?.text ?: stringResource(Res.string.historyNoQualification), 120.dp)
+                                }
+                                DropdownMenu(
+                                    expanded = menuRecordId == swim.id && available,
+                                    onDismissRequest = { menuRecordId = null },
+                                    shape = Theme.shapes.medium,
+                                    containerColor = Theme.colors.backGround2
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.historyEdit), color = Theme.colors.textPrimary) },
+                                        onClick = { menuRecordId = null; onEditSwim(swim.id) }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.historyShare), color = Theme.colors.textPrimary) },
+                                        onClick = {
+                                            menuRecordId = null
+                                            shareError = false
+                                            pendingShare = shareText
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.historyDelete), color = Theme.colors.errorPrimary) },
+                                        onClick = { menuRecordId = null; viewModel.delete(swim.id) }
+                                    )
+                                }
                             }
                         }
                     }

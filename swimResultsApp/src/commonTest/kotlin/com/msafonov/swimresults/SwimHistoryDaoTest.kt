@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
 
 class SwimHistoryDaoTest {
     @Test
@@ -36,6 +37,26 @@ class SwimHistoryDaoTest {
         assertEquals(groups.single().competition.id, groups.single().swims.first().competitionId)
         assertEquals(groups.single().competition.id, groups.single().swims.last().competitionId)
         assertEquals(8_345L, groups.single().swims.first().timeCentiseconds)
+    }
+
+    @Test
+    fun updateAndDeleteAffectOnlyTheSelectedIdAndMissingUpdateCreatesNothing() = runTest {
+        val dao = InMemorySwimHistoryDao()
+        val firstId = dao.insertSwimWithCompetition("Кубок", "2026-06-12", sampleSwim())
+        val secondId = dao.insertSwimWithCompetition("Кубок", "2026-06-12", sampleSwim())
+        val first = dao.getSwim(firstId)!!
+        val second = dao.getSwim(secondId)
+        assertEquals(1, dao.updateSwimWithCompetition(
+            first.copy(timeCentiseconds = 9000), first.competitionId, "Кубок", "2026-07-01"
+        ))
+        assertEquals(second, dao.getSwim(secondId))
+        assertEquals("2026-06-12", dao.getCompetition(first.competitionId)!!.date)
+        assertEquals(1, dao.deleteSwim(firstId))
+        assertNull(dao.getSwim(firstId))
+        assertEquals(0, dao.deleteSwim(firstId))
+        assertEquals(0, dao.updateSwimWithCompetition(first, null, "Не создавать", "2026-07-01"))
+        assertEquals(1, dao.observeHistory().first().size)
+        assertEquals(listOf(secondId), dao.observeHistory().first().single().swims.map { it.id })
     }
 }
 
@@ -65,6 +86,17 @@ private class InMemorySwimHistoryDao : SwimHistoryDao() {
     override fun observeCompetitions(): Flow<List<CompetitionEntity>> = flow { emit(competitions.toList()) }
 
     override suspend fun getCompetition(id: Long): CompetitionEntity? = competitions.firstOrNull { it.id == id }
+
+    override suspend fun getSwim(id: Long): SwimRecordEntity? = swims.firstOrNull { it.id == id }
+
+    override suspend fun updateSwim(entity: SwimRecordEntity): Int {
+        val index = swims.indexOfFirst { it.id == entity.id }
+        if (index == -1) return 0
+        swims[index] = entity
+        return 1
+    }
+
+    override suspend fun deleteSwim(id: Long): Int = if (swims.removeAll { it.id == id }) 1 else 0
 
     override suspend fun findCompetition(name: String, date: String): CompetitionEntity? =
         competitions.firstOrNull { it.name == name && it.date == date }

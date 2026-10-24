@@ -10,6 +10,7 @@ import com.msafonov.swimresults.data.model.SwimCompetitionGroup
 import com.msafonov.swimresults.data.model.SwimStyle
 import com.msafonov.swimresults.data.model.Swimmer
 import com.msafonov.swimresults.data.model.SwimmingRank
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.Single
 
@@ -45,39 +46,75 @@ class SwimHistoryRepository(
     }
 
     suspend fun save(input: NewSwimRecord) {
-        require(input.competitionName.isNotBlank())
-        require(input.distanceMeters > 0 && input.time.isNotBlank())
-        val centiseconds = parseTimeCentiseconds(input.time)
-        require(centiseconds != null) { "Invalid swimming time" }
-        val tableType = when (input.pool) {
-            PoolType.Short -> when (input.gender) {
-                Swimmer.Men -> RankTableType.ShortWaterMan
-                Swimmer.Women -> RankTableType.ShortWaterWomen
-            }
-            PoolType.Long -> when (input.gender) {
-                Swimmer.Men -> RankTableType.LongWaterMan
-                Swimmer.Women -> RankTableType.LongWaterWomen
-            }
-        }
-        val qualification = runCatching {
-            val events = checkResultRepository.rankTable(tableType)
-            checkResultRepository.checkResult(
-                events, input.distanceMeters, input.style, checkResultTime(centiseconds)
-            )?.currentRank
-        }.getOrNull()
         dao.insertSwimWithCompetition(
             competitionName = input.competitionName.trim(),
             competitionDate = input.swimDate,
-            swim = SwimRecordEntity(
-                competitionId = 0L,
-                swimDate = input.swimDate,
-                distanceMeters = input.distanceMeters,
-                style = input.style.name,
-                gender = input.gender.name,
-                poolLengthMeters = if (input.pool == PoolType.Short) 25 else 50,
-                timeCentiseconds = centiseconds,
-                qualification = qualification?.name
-            )
+            swim = prepareSwim(input)
+        )
+    }
+
+    suspend fun load(id: Long): Pair<RecordedSwim, SwimCompetition>? {
+        val row = dao.getSwim(id) ?: return null
+        val swim = checkNotNull(toRecordedSwim(row)) { "Unsupported stored swim" }
+        val competition = checkNotNull(dao.getCompetition(row.competitionId))
+        return swim to SwimCompetition(competition.id, competition.name, competition.date)
+    }
+
+    suspend fun update(id: Long, input: NewSwimRecord, selectedCompetitionId: Long?) {
+        val original = dao.getSwim(id) ?: throw NoSuchElementException("Swim no longer exists")
+        val updated = prepareSwim(input, original).copy(id = id)
+        if (dao.updateSwimWithCompetition(
+                updated, selectedCompetitionId, input.competitionName.trim(), input.swimDate
+            ) != 1) {
+            throw NoSuchElementException("Swim no longer exists")
+        }
+    }
+
+    suspend fun delete(id: Long) {
+        if (dao.deleteSwim(id) != 1) throw NoSuchElementException("Swim no longer exists")
+    }
+
+    private suspend fun prepareSwim(input: NewSwimRecord, original: SwimRecordEntity? = null): SwimRecordEntity {
+        require(input.competitionName.isNotBlank())
+        require(input.distanceMeters > 0 && input.time.isNotBlank())
+        kotlinx.datetime.LocalDate.parse(input.swimDate)
+        val centiseconds = requireNotNull(parseTimeCentiseconds(input.time)) { "Invalid swimming time" }
+        val poolLength = if (input.pool == PoolType.Short) 25 else 50
+        val athleticFieldsUnchanged = original != null &&
+            original.distanceMeters == input.distanceMeters && original.style == input.style.name &&
+            original.gender == input.gender.name && original.poolLengthMeters == poolLength &&
+            original.timeCentiseconds == centiseconds
+        val qualification = if (athleticFieldsUnchanged) original?.qualification else {
+            val tableType = when (input.pool) {
+                PoolType.Short -> when (input.gender) {
+                    Swimmer.Men -> RankTableType.ShortWaterMan
+                    Swimmer.Women -> RankTableType.ShortWaterWomen
+                }
+                PoolType.Long -> when (input.gender) {
+                    Swimmer.Men -> RankTableType.LongWaterMan
+                    Swimmer.Women -> RankTableType.LongWaterWomen
+                }
+            }
+            try {
+                val events = checkResultRepository.rankTable(tableType)
+                checkResultRepository.checkResult(
+                    events, input.distanceMeters, input.style, checkResultTime(centiseconds)
+                )?.currentRank?.name
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                null
+            }
+        }
+        return SwimRecordEntity(
+            competitionId = original?.competitionId ?: 0L,
+            swimDate = input.swimDate,
+            distanceMeters = input.distanceMeters,
+            style = input.style.name,
+            gender = input.gender.name,
+            poolLengthMeters = poolLength,
+            timeCentiseconds = centiseconds,
+            qualification = qualification
         )
     }
 

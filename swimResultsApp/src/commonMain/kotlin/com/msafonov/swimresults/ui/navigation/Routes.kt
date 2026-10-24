@@ -9,6 +9,7 @@ import swimresults.swimresultsapp.generated.resources.settingsScreenTitle
 import swimresults.swimresultsapp.generated.resources.stopWatchScreenTitle
 import swimresults.swimresultsapp.generated.resources.historyScreenTitle
 import swimresults.swimresultsapp.generated.resources.addSwimTitle
+import swimresults.swimresultsapp.generated.resources.editSwimTitle
 
 
 @Serializable
@@ -34,6 +35,12 @@ sealed class Screen() {
     data object AddSwimResult : Screen() {
         override val route: String = "addSwimResult"
         override suspend fun title(): String = getString(Res.string.addSwimTitle)
+    }
+    @Serializable
+    data object EditSwimResult : Screen() {
+        override val route: String = "editSwimResult/{recordId}"
+        fun route(recordId: Long): String = "editSwimResult/$recordId"
+        override suspend fun title(): String = getString(Res.string.editSwimTitle)
     }
     @Serializable
     data object Settings : Screen() {
