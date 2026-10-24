@@ -57,6 +57,8 @@
 
     <string name="women">Девушки</string>
     <string name="men">Юноши</string>
+    <string name="womenShort">Жен</string>
+    <string name="menShort">Муж</string>
 
 
     <string name="genderGroup">Пол</string>
@@ -94,6 +96,11 @@
     <string name="styleBreaststroke">Брасс</string>
     <string name="styleButterfly">Баттерфляй</string>
     <string name="styleMedley">Комплексное плавание</string>
+    <string name="styleFreestyleShort">ВС</string>
+    <string name="styleBackstrokeShort">СП</string>
+    <string name="styleBreaststrokeShort">БР</string>
+    <string name="styleButterflyShort">БТ</string>
+    <string name="styleMedleyShort">КП</string>
 
     <string name="rankInternationalMaster">Мастер спорта международного класса</string>
     <string name="rankMaster">Мастер спорта</string>

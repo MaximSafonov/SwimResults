@@ -1,7 +1,10 @@
 package com.msafonov.swimresults.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -10,20 +13,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -102,9 +111,9 @@ internal fun CheckResultContent(
         ) {
             FilterGroup(stringResource(Res.string.genderGroup), modifier = Modifier.weight(1f)) {
                 SwimFilterChip(selected = state.filters.swimmer == Swimmer.Men,
-                    text = stringResource(Res.string.men), onClick = { onSwimmer(Swimmer.Men) })
+                    text = stringResource(Res.string.menShort), onClick = { onSwimmer(Swimmer.Men) })
                 SwimFilterChip(selected = state.filters.swimmer == Swimmer.Women,
-                    text = stringResource(Res.string.women), onClick = { onSwimmer(Swimmer.Women) })
+                    text = stringResource(Res.string.womenShort), onClick = { onSwimmer(Swimmer.Women) })
             }
             FilterGroup(stringResource(Res.string.poolGroup), modifier = Modifier.weight(1f)) {
                 SwimFilterChip(selected = state.filters.poolType == PoolType.Short,
@@ -113,20 +122,30 @@ internal fun CheckResultContent(
                     text = stringResource(Res.string.longWaterLength), onClick = { onPool(PoolType.Long) })
             }
         }
-        FilterGroup(stringResource(Res.string.styleGroup)) {
-            listOf(SwimStyle.FREESTYLE, SwimStyle.BACKSTROKE, SwimStyle.BREASTSTROKE,
-                SwimStyle.BUTTERFLY, SwimStyle.MEDLEY).forEach { style ->
-                SwimFilterChip(selected = state.filters.swimStyle == style,
-                    text = style.text, onClick = { onStyle(style) })
-            }
-        }
-        FilterGroup(stringResource(Res.string.distanceTitle)) {
-            state.filters.distances.forEach { distance ->
-                SwimFilterChip(selected = state.filters.distance == distance,
-                    text = stringResource(Res.string.distanceMeters, distance),
-                    onClick = { onDistance(distance) })
-            }
-        }
+        val styles = listOf(SwimStyle.FREESTYLE, SwimStyle.BACKSTROKE,
+            SwimStyle.BREASTSTROKE, SwimStyle.BUTTERFLY, SwimStyle.MEDLEY)
+        FilterTabs(
+            title = stringResource(Res.string.styleGroup),
+            options = styles,
+            selected = state.filters.swimStyle,
+            label = { style -> stringResource(when (style) {
+                SwimStyle.FREESTYLE -> Res.string.styleFreestyleShort
+                SwimStyle.BACKSTROKE -> Res.string.styleBackstrokeShort
+                SwimStyle.BREASTSTROKE -> Res.string.styleBreaststrokeShort
+                SwimStyle.BUTTERFLY -> Res.string.styleButterflyShort
+                SwimStyle.MEDLEY -> Res.string.styleMedleyShort
+            }) },
+            description = { it.text },
+            onSelect = onStyle
+        )
+        FilterTabs(
+            title = stringResource(Res.string.distanceTitle),
+            options = state.filters.distances,
+            selected = state.filters.distance,
+            label = { it.toString() },
+            description = { stringResource(Res.string.distanceMeters, it) },
+            onSelect = onDistance
+        )
         Text(
             stringResource(Res.string.standardsTitle), color = Theme.colors.textPrimary,
             fontSize = 20.sp, fontWeight = FontWeight.SemiBold,
@@ -174,6 +193,56 @@ internal fun CheckResultContent(
         }
     }
     state.resultDetails?.let { ResultDialog(details = it, onDismiss = onDismissResult) }
+}
+
+@Composable
+private fun <T> FilterTabs(
+    title: String,
+    options: List<T>,
+    selected: T,
+    label: @Composable (T) -> String,
+    description: @Composable (T) -> String,
+    onSelect: (T) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title, color = Theme.colors.textPrimary, modifier = Modifier.semantics { heading() })
+        val minTabWidth = 48.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxWidth().clip(Theme.shapes.medium)
+        ) {
+            val rowWidth = maxOf(maxWidth, minTabWidth * options.size)
+            Box(Modifier.horizontalScroll(rememberScrollState())) {
+                SecondaryTabRow(
+                    selectedTabIndex = options.indexOf(selected).coerceAtLeast(0),
+                    modifier = Modifier.width(rowWidth),
+                    containerColor = Theme.colors.backGround2,
+                    contentColor = Theme.colors.primary,
+                    divider = {}
+                ) {
+                    options.forEach { option ->
+                        val optionDescription = description(option)
+                        Tab(
+                            selected = option == selected,
+                            onClick = { onSelect(option) },
+                            modifier = Modifier.sizeIn(minHeight = 48.dp)
+                                .semantics { contentDescription = optionDescription },
+                            selectedContentColor = Theme.colors.textPrimary,
+                            unselectedContentColor = Theme.colors.textSecondary
+                        ) {
+                            Text(
+                                text = label(option),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
+                                fontSize = 14.sp,
+                                fontWeight = if (option == selected) FontWeight.SemiBold else FontWeight.Normal,
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
