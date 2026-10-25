@@ -1,5 +1,8 @@
 package com.msafonov.swimresults.ui.dialogs
 
+import com.msafonov.swimresults.ui.strings.*
+import org.jetbrains.compose.resources.stringResource
+import swimresults.swimresultsapp.generated.resources.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,11 +27,6 @@ import com.msafonov.swimresults.data.model.SwimmingRank
 import com.msafonov.swimresults.data.model.TimeComponents
 import com.msafonov.swimresults.ui.composable.RankResultRow
 import com.msafonov.swimresults.ui.theme.Theme
-import org.jetbrains.compose.resources.stringResource
-import swimresults.swimresultsapp.generated.resources.Res
-import swimresults.swimresultsapp.generated.resources.close
-import swimresults.swimresultsapp.generated.resources.longWaterTitle
-import swimresults.swimresultsapp.generated.resources.shortWaterTitle
 
 @Composable
 fun RankListDialog(
@@ -53,7 +51,7 @@ fun RankListDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = " ${event.distance} ${event.style.text}",
+                    text = stringResource(Res.string.distanceStyle, event.distance, styleName(event.style)),
                     textAlign = TextAlign.Center,
                     style = TextStyle(
                         fontSize = 30.sp,

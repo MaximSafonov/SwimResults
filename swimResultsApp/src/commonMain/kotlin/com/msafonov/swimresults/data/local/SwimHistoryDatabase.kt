@@ -5,13 +5,17 @@ import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import androidx.room.ConstructedBy
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import com.msafonov.swimresults.data.local.dao.ProfileDao
+import com.msafonov.swimresults.data.local.entity.AccountEntity
+import com.msafonov.swimresults.data.local.entity.AthleteEntity
 import com.msafonov.swimresults.data.local.dao.SwimHistoryDao
 import com.msafonov.swimresults.data.local.entity.CompetitionEntity
 import com.msafonov.swimresults.data.local.entity.SwimRecordEntity
 
-@Database(entities = [CompetitionEntity::class, SwimRecordEntity::class], version = 1, exportSchema = true)
+@Database(entities = [CompetitionEntity::class, SwimRecordEntity::class, AccountEntity::class, AthleteEntity::class], version = 3, exportSchema = true)
 @ConstructedBy(SwimHistoryDatabaseConstructor::class)
 abstract class SwimHistoryDatabase : RoomDatabase() {
+    abstract fun profileDao(): ProfileDao
     abstract fun swimHistoryDao(): SwimHistoryDao
 }
 

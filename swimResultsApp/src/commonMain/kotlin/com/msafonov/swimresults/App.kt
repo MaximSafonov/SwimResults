@@ -13,6 +13,7 @@ import org.koin.plugin.module.dsl.koinConfiguration
 @Composable
 @Preview
 fun App() {
+    com.msafonov.swimresults.auth.InitializeAuthPlatform()
     InitializeSettingsStorage()
     InitializeSwimHistoryStorage()
     KoinApplication(configuration = koinConfiguration<KoinApp>()) {

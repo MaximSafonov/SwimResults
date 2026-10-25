@@ -11,6 +11,7 @@ import androidx.room.Update
 import com.msafonov.swimresults.data.local.entity.CompetitionEntity
 import com.msafonov.swimresults.data.local.entity.SwimRecordEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 data class CompetitionWithSwims(
     @Embedded val competition: CompetitionEntity,
@@ -47,6 +48,32 @@ abstract class SwimHistoryDao {
 
     @Query("DELETE FROM swim_records WHERE id = :id")
     abstract suspend fun deleteSwim(id: Long): Int
+
+    /** DAO projection never emits rows belonging to another athlete. Null is the device bucket. */
+    open fun observeScopedHistory(athleteId: Long?): Flow<List<CompetitionWithSwims>> = observeHistory().map { groups ->
+        groups.map { it.copy(swims = it.swims.filter { row -> row.athleteId == athleteId }) }
+            .filter { it.swims.isNotEmpty() }
+    }
+
+    @Query("SELECT * FROM athletes WHERE id = :id AND accountId = :accountId")
+    abstract suspend fun ownedLinkTarget(accountId: String, id: Long): com.msafonov.swimresults.data.local.entity.AthleteEntity?
+
+    @Query("SELECT * FROM swim_records WHERE id IN (:ids)")
+    abstract suspend fun selectedSwims(ids: List<Long>): List<SwimRecordEntity>
+
+    @Query("UPDATE swim_records SET athleteId = :athleteId WHERE id IN (:ids) AND athleteId IS NULL")
+    abstract suspend fun assignUnassigned(ids: List<Long>, athleteId: Long): Int
+
+    @Transaction
+    open suspend fun linkDeviceRecords(accountId: String, athleteId: Long, ids: List<Long>) {
+        require(ids.isNotEmpty() && ids.size <= 200 && ids.toSet().size == ids.size)
+        requireNotNull(ownedLinkTarget(accountId, athleteId)) { "Athlete is unavailable" }
+        val rows = selectedSwims(ids)
+        check(rows.size == ids.size && rows.map { it.id }.toSet() == ids.toSet() && rows.all { it.athleteId == null }) {
+            "Selected records changed"
+        }
+        check(assignUnassigned(ids, athleteId) == ids.size) { "Selected records changed" }
+    }
 
     @Transaction
     open suspend fun updateSwimWithCompetition(

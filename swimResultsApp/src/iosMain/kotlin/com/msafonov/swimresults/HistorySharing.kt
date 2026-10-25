@@ -7,6 +7,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSThread
+import platform.UIKit.popoverPresentationController
 import platform.UIKit.UIActivityViewController
 
 @OptIn(ExperimentalForeignApi::class)

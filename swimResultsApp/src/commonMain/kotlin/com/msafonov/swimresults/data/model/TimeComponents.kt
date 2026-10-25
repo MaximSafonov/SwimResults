@@ -10,15 +10,6 @@ data class TimeComponents(
     val seconds: Long,
     val milliseconds: Long
 ) {
-    override fun toString(): String {
-        val msecs = if (milliseconds > 100L) milliseconds.toString()
-            .substring(1) else milliseconds.toString()
-        val minutes = if (minutes > 0L) "$minutes мин " else ""
-        val seconds = if (seconds > 0L) "$seconds сек " else "0 сек "
-        val ms = if (milliseconds > 0L) "$msecs сот" else "0 сот"
-        return "$minutes$seconds$ms"
-    }
-
     fun toRankFormat(): String {
         val msecs = if (milliseconds > 100L) milliseconds.toString().substring(1) else milliseconds.toString().padStart(2,'0')
         val minutes = if (minutes > 0L) "$minutes:" else ""

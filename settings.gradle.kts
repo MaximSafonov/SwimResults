@@ -26,6 +26,13 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven {
+            url = uri("https://nexus-external.vkteam.ru/repository/maven/")
+            content {
+                includeGroupAndSubgroups("com.vk")
+                includeGroup("ru.ok.tracer")
+            }
+        }
     }
 }
 

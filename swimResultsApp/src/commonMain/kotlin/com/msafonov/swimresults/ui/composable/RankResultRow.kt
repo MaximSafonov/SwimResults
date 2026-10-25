@@ -1,5 +1,6 @@
 package com.msafonov.swimresults.ui.composable
 
+import com.msafonov.swimresults.ui.strings.rankShortName
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +25,7 @@ fun RankResultRow(rank: SwimmingRank, time: TimeComponents) {
             modifier = Modifier
                 .width(70.dp)
                 .padding(start = 16.dp),
-            text = rank.text,
+            text = rankShortName(rank),
             textAlign = TextAlign.Start,
             color = Theme.colors.onPrimary
         )

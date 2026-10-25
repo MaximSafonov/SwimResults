@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.msafonov.swimresults.data.model.SwimmingRank
 import com.msafonov.swimresults.data.model.TimeComponents
 import com.msafonov.swimresults.data.model.TimeComponents.Companion.toDuration
+import com.msafonov.swimresults.ui.strings.*
 import com.msafonov.swimresults.ui.theme.Theme
 import com.msafonov.swimresults.ui.theme.SwimRankAppTheme
 import com.msafonov.swimresults.viewmodel.ResultComparisonStatus
@@ -65,13 +66,10 @@ private fun ResultDetailsContent(details: ResultDetailsUiState) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    listOf(
-                        stringResource(Res.string.distanceMeters, details.distance),
-                        styleName(details.swimStyle).replaceFirstChar { it.lowercase() },
-                        stringResource(if (details.swimmer == com.msafonov.swimresults.data.model.Swimmer.Women) Res.string.women else Res.string.men)
-                            .replaceFirstChar { it.lowercase() },
-                        stringResource(if (details.poolType == com.msafonov.swimresults.data.model.PoolType.Short) Res.string.shortWaterLength else Res.string.longWaterLength),
-                    ).joinToString(", "),
+                    stringResource(Res.string.resultMetadata, details.distance,
+                        styleName(details.swimStyle),
+                        stringResource(if (details.swimmer == com.msafonov.swimresults.data.model.Swimmer.Women) Res.string.women else Res.string.men),
+                        stringResource(if (details.poolType == com.msafonov.swimresults.data.model.PoolType.Short) Res.string.shortWaterLength else Res.string.longWaterLength)),
                     modifier = Modifier.fillMaxWidth(),
                     color = Theme.colors.textSecondary,
                     fontSize = 16.sp,
@@ -117,13 +115,13 @@ private fun StandardsTable(details: ResultDetailsUiState, achieved: SwimmingRank
         TableRow(stringResource(Res.string.tableQualification), stringResource(Res.string.tableStandard), stringResource(Res.string.tableDifference), highlighted = false, description = null)
         details.rows.forEach { row ->
             val highlighted = row.rank == achieved
-            val rowDifference = ResultDetailsTime.formatDifference(row.differenceCentiseconds)
+            val rowDifference = stringResource(Res.string.differenceSeconds, ResultDetailsTime.formatDifference(row.differenceCentiseconds))
             val description = stringResource(
                 if (highlighted) Res.string.achievedStandardRowDescription else Res.string.standardRowDescription,
                 rankFullName(row.rank), standardTime(row), rowDifference
             )
             val label = if (highlighted) {
-                "${rankShortName(row.rank)} · ${stringResource(Res.string.achievedQualification)}"
+                stringResource(Res.string.achievedRankLabel, rankShortName(row.rank))
             } else rankShortName(row.rank)
             TableRow(label, standardTime(row), rowDifference, highlighted, description)
         }
@@ -153,41 +151,6 @@ private fun ComparisonMessage(resource: org.jetbrains.compose.resources.StringRe
 @Composable
 private fun standardTime(row: ResultStandardRow): String =
     TimeComponents.durationToComponents(row.time).toRankFormat()
-
-@Composable
-private fun styleName(style: com.msafonov.swimresults.data.model.SwimStyle): String = stringResource(when (style) {
-    com.msafonov.swimresults.data.model.SwimStyle.FREESTYLE -> Res.string.styleFreestyle
-    com.msafonov.swimresults.data.model.SwimStyle.BACKSTROKE -> Res.string.styleBackstroke
-    com.msafonov.swimresults.data.model.SwimStyle.BREASTSTROKE -> Res.string.styleBreaststroke
-    com.msafonov.swimresults.data.model.SwimStyle.BUTTERFLY -> Res.string.styleButterfly
-    com.msafonov.swimresults.data.model.SwimStyle.MEDLEY -> Res.string.styleMedley
-})
-
-@Composable
-private fun rankFullName(rank: SwimmingRank): String = stringResource(when (rank) {
-    SwimmingRank.InternationalMasterOfSports -> Res.string.rankInternationalMaster
-    SwimmingRank.MasterOfSports -> Res.string.rankMaster
-    SwimmingRank.CandidateMasterOfSports -> Res.string.rankCandidateMaster
-    SwimmingRank.First -> Res.string.rankFirst
-    SwimmingRank.Second -> Res.string.rankSecond
-    SwimmingRank.Third -> Res.string.rankThird
-    SwimmingRank.FirstJunior -> Res.string.rankFirstJunior
-    SwimmingRank.SecondJunior -> Res.string.rankSecondJunior
-    SwimmingRank.ThirdJunior -> Res.string.rankThirdJunior
-})
-
-@Composable
-private fun rankShortName(rank: SwimmingRank): String = stringResource(when (rank) {
-    SwimmingRank.InternationalMasterOfSports -> Res.string.rankShortInternationalMaster
-    SwimmingRank.MasterOfSports -> Res.string.rankShortMaster
-    SwimmingRank.CandidateMasterOfSports -> Res.string.rankShortCandidateMaster
-    SwimmingRank.First -> Res.string.rankShortFirst
-    SwimmingRank.Second -> Res.string.rankShortSecond
-    SwimmingRank.Third -> Res.string.rankShortThird
-    SwimmingRank.FirstJunior -> Res.string.rankShortFirstJunior
-    SwimmingRank.SecondJunior -> Res.string.rankShortSecondJunior
-    SwimmingRank.ThirdJunior -> Res.string.rankShortThirdJunior
-})
 
 @Preview(name = "Details light", widthDp = 360, heightDp = 800)
 @Preview(name = "Details narrow large text", widthDp = 320, heightDp = 640, fontScale = 2f)

@@ -1,5 +1,6 @@
 package com.msafonov.swimresults.ui.composable
 
+import com.msafonov.swimresults.ui.strings.styleName
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,7 +49,7 @@ fun SwimmingStyles(modifier: Modifier = Modifier, viewModel: CheckResultViewMode
                     )
                 )
                 Text(
-                    text = style.text,
+                    text = styleName(style),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(start = 16.dp),
                     color = Theme.colors.textPrimary

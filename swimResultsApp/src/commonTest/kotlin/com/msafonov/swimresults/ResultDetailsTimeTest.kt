@@ -30,10 +30,10 @@ class ResultDetailsTimeTest {
         assertEquals(-1L, ResultDetailsTime.difference(5_998, 5_999))
         assertEquals(0L, ResultDetailsTime.difference(6_000, 6_000))
         assertEquals(6_001L, ResultDetailsTime.difference(12_000, 5_999))
-        assertEquals("+4.50 с", ResultDetailsTime.formatDifference(450))
-        assertEquals("−0.01 с", ResultDetailsTime.formatDifference(-1))
-        assertEquals("0.00 с", ResultDetailsTime.formatDifference(0))
-        assertEquals("+60.01 с", ResultDetailsTime.formatDifference(6_001))
+        assertEquals("+4.50", ResultDetailsTime.formatDifference(450))
+        assertEquals("−0.01", ResultDetailsTime.formatDifference(-1))
+        assertEquals("0.00", ResultDetailsTime.formatDifference(0))
+        assertEquals("+60.01", ResultDetailsTime.formatDifference(6_001))
     }
 
     @Test

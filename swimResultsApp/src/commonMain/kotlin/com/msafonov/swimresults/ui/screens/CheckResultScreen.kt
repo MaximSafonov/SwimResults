@@ -1,5 +1,8 @@
 package com.msafonov.swimresults.ui.screens
 
+import com.msafonov.swimresults.ui.strings.*
+import org.jetbrains.compose.resources.stringResource
+import swimresults.swimresultsapp.generated.resources.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -59,9 +62,7 @@ import com.msafonov.swimresults.data.storage.RankTableStorage
 import com.msafonov.swimresults.data.model.RankTableType
 import com.msafonov.swimresults.viewmodel.CheckResultViewModel
 import com.msafonov.swimresults.viewmodel.StandardsStatus
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import swimresults.swimresultsapp.generated.resources.*
 
 @Composable
 fun CheckResultScreen(passedResult: String? = null) {
@@ -135,7 +136,7 @@ internal fun CheckResultContent(
                 SwimStyle.BUTTERFLY -> Res.string.styleButterflyShort
                 SwimStyle.MEDLEY -> Res.string.styleMedleyShort
             }) },
-            description = { it.text },
+            description = { styleName(it) },
             onSelect = onStyle
         )
         FilterTabs(

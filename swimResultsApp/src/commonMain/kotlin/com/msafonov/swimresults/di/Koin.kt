@@ -18,6 +18,14 @@ object KoinApp
 @Configuration
 class AppModule {
     @Single
+    internal fun provideProfileDao(database: SwimHistoryDatabase) = database.profileDao()
+
+    @Single
+    internal fun provideAuthSession(session: com.msafonov.swimresults.auth.AccountSession,
+        policy: com.msafonov.swimresults.data.storage.AuthSessionPolicyStorage): com.msafonov.swimresults.auth.AuthSession =
+        com.msafonov.swimresults.auth.createAuthSession(session, policy)
+
+    @Single
     internal fun provideSwimHistoryDatabase(): SwimHistoryDatabase = buildSwimHistoryDatabase()
 
     @Single

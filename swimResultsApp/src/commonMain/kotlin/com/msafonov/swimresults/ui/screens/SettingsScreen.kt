@@ -1,5 +1,7 @@
 package com.msafonov.swimresults.ui.screens
 
+import org.jetbrains.compose.resources.stringResource
+import swimresults.swimresultsapp.generated.resources.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -11,6 +13,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,14 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.msafonov.swimresults.ui.theme.Theme
 import com.msafonov.swimresults.viewmodel.SettingsViewModel
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import swimresults.swimresultsapp.generated.resources.Res
-import swimresults.swimresultsapp.generated.resources.dartTheme
-import swimresults.swimresultsapp.generated.resources.lightTheme
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(onBack: () -> Unit) {
     val viewModel = koinViewModel<SettingsViewModel>()
     val isDark by viewModel.isDark.collectAsStateWithLifecycle()
     Column(
@@ -38,8 +42,18 @@ fun SettingsScreen() {
             .padding(top = 16.dp)
             .background(Theme.colors.backGround)
             .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.Start
     ) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back),
+                    modifier = Modifier.size(32.dp), tint = Theme.colors.textPrimary)
+            }
+            Text(stringResource(Res.string.settingsScreenTitle), color = Theme.colors.textPrimary,
+                modifier = Modifier.weight(1f), textAlign = TextAlign.Start)
+        }
+        Text(stringResource(Res.string.themeHeading), color = Theme.colors.textPrimary,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), textAlign = TextAlign.Start)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier

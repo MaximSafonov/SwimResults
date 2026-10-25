@@ -1,5 +1,7 @@
 package com.msafonov.swimresults
 
+import com.msafonov.swimresults.data.model.SwimmingRank
+import com.msafonov.swimresults.viewmodel.SwimHistoryViewModel
 import com.msafonov.swimresults.data.model.Constants
 import com.msafonov.swimresults.data.model.PoolType
 import com.msafonov.swimresults.data.model.SwimStyle
@@ -189,6 +191,53 @@ class AddSwimResultViewModelTest {
         assertFalse(vm.uiState.value.saving)
         assertFalse(vm.uiState.value.saved)
         assertEquals(8_345L, dao.getSwim(id)!!.timeCentiseconds)
+    }
+
+    @Test
+    fun activeAthleteChangeNeverRetargetsOpenDraftAndLogoutBlocksSave() = runTest(scheduler) {
+        val dao = InMemoryHistoryDao()
+        val session = com.msafonov.swimresults.auth.AccountSession()
+        signedIn(session)
+        val repository = historyTestRepository(dao, session)
+        repository.profiles.current()
+        val first = repository.profiles.save(session.current, null, "Первый", "", Swimmer.Men, SwimmingRank.InternationalMasterOfSports)
+        val second = repository.profiles.save(session.current, null, "Второй", "", Swimmer.Women)
+        val vm = AddSwimResultViewModel(repository).also { store.put("form", it) }
+        vm.initialize(null)
+        scheduler.runCurrent()
+        assertEquals(first, vm.uiState.value.context!!.athleteId)
+        assertEquals(Swimmer.Men, vm.uiState.value.swimmer)
+        vm.setCompetitionName("Старт"); vm.setTime("10.00")
+        val history = SwimHistoryViewModel(repository, repository.profiles).also { store.put("history", it) }
+        scheduler.runCurrent()
+        history.selectAthlete(second)
+        scheduler.runCurrent()
+        assertEquals(second, history.uiState.value.context!!.athleteId)
+        val next = AddSwimResultViewModel(repository).also { store.put("next", it) }
+        next.initialize(null); scheduler.runCurrent()
+        assertEquals(second, next.uiState.value.context!!.athleteId)
+        assertEquals(Swimmer.Women, next.uiState.value.swimmer)
+        history.deviceLocal(true); scheduler.runCurrent()
+        val device = AddSwimResultViewModel(repository).also { store.put("device", it) }
+        device.initialize(null); scheduler.runCurrent()
+        assertNull(device.uiState.value.context!!.athleteId)
+        history.selectAthlete(second); scheduler.runCurrent()
+        assertEquals(first, vm.uiState.value.context!!.athleteId)
+        vm.save {}
+        scheduler.runCurrent()
+        assertEquals(first, dao.swims.single().athleteId)
+        val controlDao = InMemoryHistoryDao()
+        historyTestRepository(controlDao).save(historyTestInput().copy(distanceMeters = 50, gender = Swimmer.Men, time = "10.00"))
+        assertEquals(controlDao.swims.single().qualification, dao.swims.single().qualification)
+        val stale = AddSwimResultViewModel(repository).also { store.put("stale", it) }
+        stale.initialize(null)
+        scheduler.runCurrent()
+        stale.setCompetitionName("Другой"); stale.setTime("12.00")
+        session.change(com.msafonov.swimresults.auth.AuthState.Guest())
+        stale.save { error("Stale draft navigated") }
+        scheduler.runCurrent()
+        assertFalse(stale.uiState.value.canSave)
+        assertEquals(1, dao.swims.size)
     }
 
     @Test

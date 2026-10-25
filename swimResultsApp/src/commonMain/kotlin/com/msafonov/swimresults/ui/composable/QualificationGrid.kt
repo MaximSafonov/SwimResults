@@ -1,5 +1,8 @@
 package com.msafonov.swimresults.ui.composable
 
+import com.msafonov.swimresults.ui.strings.*
+import org.jetbrains.compose.resources.stringResource
+import swimresults.swimresultsapp.generated.resources.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,9 +24,6 @@ import androidx.compose.ui.unit.sp
 import com.msafonov.swimresults.data.model.TimeComponents
 import com.msafonov.swimresults.ui.theme.Theme
 import com.msafonov.swimresults.viewmodel.QualificationStandard
-import org.jetbrains.compose.resources.stringResource
-import swimresults.swimresultsapp.generated.resources.Res
-import swimresults.swimresultsapp.generated.resources.standardMissing
 
 @Composable
 fun QualificationGrid(
@@ -39,15 +39,16 @@ fun QualificationGrid(
                 val time = standard.time?.let {
                     TimeComponents.durationToComponents(it).toRankFormat()
                 }
+                val description = stringResource(Res.string.qualificationDescription, rankFullName(standard.rank), time ?: missing)
                 Column(
                     modifier = Modifier.background(Theme.colors.backGround2, Theme.shapes.medium)
                         .clearAndSetSemantics {
-                            contentDescription = "${standard.rank.text}, ${time ?: missing}"
+                            contentDescription = description
                         }.padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text(standard.rank.text, color = Theme.colors.textPrimary, fontWeight = FontWeight.Medium)
-                    Text(time ?: "—", color = Theme.colors.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                    Text(rankShortName(standard.rank), color = Theme.colors.textPrimary, fontWeight = FontWeight.Medium)
+                    Text(time ?: stringResource(Res.string.standardUnavailableValue), color = Theme.colors.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

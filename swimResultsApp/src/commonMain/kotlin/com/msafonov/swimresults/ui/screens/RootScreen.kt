@@ -35,13 +35,15 @@ fun SwimResultsApp() {
     val navController = rememberNavController()
     val settingsViewModel = koinViewModel<SettingsViewModel>()
     val isDark by settingsViewModel.isDark.collectAsStateWithLifecycle()
+    val profileViewModel = koinViewModel<com.msafonov.swimresults.viewmodel.ProfileViewModel>()
     SwimRankAppTheme(isDark) {
         Scaffold(
             containerColor = Theme.colors.backGround,
             bottomBar = {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
-                if (currentRoute != Screen.AddSwimResult.route && currentRoute != Screen.EditSwimResult.route) {
+                if (currentRoute != Screen.AddSwimResult.route && currentRoute != Screen.EditSwimResult.route &&
+                    currentRoute != Screen.AddAthlete.route && currentRoute != Screen.EditAthlete.route) {
                 NavigationBar(
                     containerColor = Theme.colors.backGround,
                 ) {
@@ -66,7 +68,7 @@ fun SwimResultsApp() {
                                     text = stringResource(navItem.title)
                                 )
                             },
-                            selected = currentRoute == navItem.screen.route,
+                            selected = currentRoute == navItem.screen.route || (navItem.screen == Screen.Profile && currentRoute == Screen.Settings.route),
                             onClick = {
                                 navController.navigate(navItem.screen.route) {
                                     popUpTo(
@@ -109,13 +111,28 @@ fun SwimResultsApp() {
                     route = Screen.Settings.route,
                     enterTransition = { fadeIn(animationSpec = tween(300)) },
                     exitTransition = { fadeOut(animationSpec = tween(300)) }
-                ) { SettingsScreen() }
+                ) { SettingsScreen(onBack = { navController.popBackStack() }) }
+                composable(Screen.Profile.route) {
+                    ProfileScreen(onSettings = { navController.navigate(Screen.Settings.route) },
+                        onAddAthlete = { navController.navigate(Screen.AddAthlete.route) },
+                        onEditAthlete = { navController.navigate(Screen.EditAthlete.route(it)) }, viewModel = profileViewModel)
+                }
+                composable(Screen.AddAthlete.route) { entry ->
+                    AthleteFormScreen(onBack = { if (navController.currentBackStackEntry == entry) navController.popBackStack() },
+                        viewModel = koinViewModel(viewModelStoreOwner = entry))
+                }
+                composable(Screen.EditAthlete.route, arguments = listOf(navArgument("athleteId") { type = NavType.LongType })) { entry ->
+                    AthleteFormScreen(onBack = { if (navController.currentBackStackEntry == entry) navController.popBackStack() },
+                        athleteId = checkNotNull(NavType.LongType[checkNotNull(entry.arguments), "athleteId"]),
+                        viewModel = koinViewModel(viewModelStoreOwner = entry))
+                }
                 composable(
                     route = Screen.History.route,
                     enterTransition = { fadeIn(animationSpec = tween(300)) },
                     exitTransition = { fadeOut(animationSpec = tween(300)) }
                 ) {
                     SwimHistoryScreen(
+                        onProfile = { navController.navigate(Screen.Profile.route) },
                         onAddSwim = { navController.navigate(Screen.AddSwimResult.route) { launchSingleTop = true } },
                         onEditSwim = { id -> navController.navigate(Screen.EditSwimResult.route(id)) { launchSingleTop = true } }
                     )

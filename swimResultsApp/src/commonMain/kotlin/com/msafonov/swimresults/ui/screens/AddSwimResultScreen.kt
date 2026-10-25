@@ -1,5 +1,8 @@
 package com.msafonov.swimresults.ui.screens
 
+import com.msafonov.swimresults.ui.strings.*
+import org.jetbrains.compose.resources.stringResource
+import swimresults.swimresultsapp.generated.resources.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,39 +52,7 @@ import com.msafonov.swimresults.ui.theme.Theme
 import com.msafonov.swimresults.ui.theme.SwimComponentDefaults
 import com.msafonov.swimresults.viewmodel.AddSwimResultViewModel
 import com.msafonov.swimresults.viewmodel.AddSwimResultError
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import swimresults.swimresultsapp.generated.resources.Res
-import swimresults.swimresultsapp.generated.resources.addSwimTitle
-import swimresults.swimresultsapp.generated.resources.editSwimTitle
-import swimresults.swimresultsapp.generated.resources.swimRecordLoading
-import swimresults.swimresultsapp.generated.resources.swimRecordNotFound
-import swimresults.swimresultsapp.generated.resources.swimRecordLoadError
-import swimresults.swimresultsapp.generated.resources.cancel
-import swimresults.swimresultsapp.generated.resources.competitionChoose
-import swimresults.swimresultsapp.generated.resources.competitionLabel
-import swimresults.swimresultsapp.generated.resources.competitionNameLabel
-import swimresults.swimresultsapp.generated.resources.competitionNew
-import swimresults.swimresultsapp.generated.resources.dateFormatError
-import swimresults.swimresultsapp.generated.resources.distanceMeters
-import swimresults.swimresultsapp.generated.resources.distanceTitle
-import swimresults.swimresultsapp.generated.resources.genderGroup
-import swimresults.swimresultsapp.generated.resources.swimSaveFailure
-import swimresults.swimresultsapp.generated.resources.swimSaveError
-import swimresults.swimresultsapp.generated.resources.swimCompetitionsLoadError
-import swimresults.swimresultsapp.generated.resources.longWaterLength
-import swimresults.swimresultsapp.generated.resources.poolGroup
-import swimresults.swimresultsapp.generated.resources.saveSwim
-import swimresults.swimresultsapp.generated.resources.shortWaterLength
-import swimresults.swimresultsapp.generated.resources.styleGroup
-import swimresults.swimresultsapp.generated.resources.swimDateLabel
-import swimresults.swimresultsapp.generated.resources.men
-import swimresults.swimresultsapp.generated.resources.women
-import swimresults.swimresultsapp.generated.resources.styleFreestyle
-import swimresults.swimresultsapp.generated.resources.styleBackstroke
-import swimresults.swimresultsapp.generated.resources.styleBreaststroke
-import swimresults.swimresultsapp.generated.resources.styleButterfly
-import swimresults.swimresultsapp.generated.resources.styleMedley
 
 @Composable
 fun AddSwimResultScreen(
@@ -89,7 +60,10 @@ fun AddSwimResultScreen(
     recordId: Long? = null,
     viewModel: AddSwimResultViewModel = koinViewModel()
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val collectedState by viewModel.uiState.collectAsStateWithLifecycle()
+    val session by viewModel.session.collectAsStateWithLifecycle()
+    val state = collectedState.takeIf { it.context == null || it.context.session == session }
+        ?: com.msafonov.swimresults.viewmodel.AddSwimResultUiState(ready = false, error = AddSwimResultError.NotFound)
     LaunchedEffect(viewModel, recordId) { viewModel.initialize(recordId) }
     var formattedTime by remember(viewModel) { mutableStateOf(TextFieldValue(text = state.time)) }
     LaunchedEffect(state.time) {
@@ -112,6 +86,7 @@ fun AddSwimResultScreen(
                 Text(stringResource(Res.string.cancel), color = Theme.colors.textPrimary)
             }
         }
+        state.context?.let { Text(historyLabel(it.label), color = Theme.colors.textSecondary) }
         if (state.loading || !state.ready) {
             if (state.loading) {
                 CircularProgressIndicator(color = Theme.colors.textPrimary)
@@ -210,7 +185,7 @@ private fun CompetitionSelector(
     onNew: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val selected = state.selectedCompetition?.let { "${it.name} (${formatDate(it.date)})" }
+    val selected = state.selectedCompetition?.let { stringResource(Res.string.competitionNameDate, it.name, formatDate(it.date)) }
         ?: state.newCompetitionName.ifBlank { stringResource(Res.string.competitionChoose) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
@@ -235,7 +210,7 @@ private fun CompetitionSelector(
             )
             state.competitions.forEach { competition ->
                 DropdownMenuItem(
-                    text = { Text("${competition.name} (${formatDate(competition.date)})") },
+                    text = { Text(stringResource(Res.string.competitionNameDate, competition.name, formatDate(competition.date))) },
                     onClick = { onSelect(competition.id); expanded = false }
                 )
             }

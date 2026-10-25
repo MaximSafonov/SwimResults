@@ -72,6 +72,9 @@ private fun sampleSwim() = SwimRecordEntity(
 )
 
 private class InMemorySwimHistoryDao : SwimHistoryDao() {
+    override suspend fun ownedLinkTarget(accountId: String, id: Long): com.msafonov.swimresults.data.local.entity.AthleteEntity? = null
+    override suspend fun selectedSwims(ids: List<Long>) = swims.filter { it.id in ids }
+    override suspend fun assignUnassigned(ids: List<Long>, athleteId: Long): Int = error("No link target in this fixture")
     private val competitions = mutableListOf<CompetitionEntity>()
     private val swims = mutableListOf<SwimRecordEntity>()
     private var nextCompetitionId = 1L

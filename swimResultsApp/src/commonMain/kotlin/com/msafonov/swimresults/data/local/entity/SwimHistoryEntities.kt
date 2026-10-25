@@ -23,8 +23,11 @@ data class CompetitionEntity(
         parentColumns = ["id"],
         childColumns = ["competitionId"],
         onDelete = ForeignKey.CASCADE
+    ), ForeignKey(
+        entity = AthleteEntity::class, parentColumns = ["id"], childColumns = ["athleteId"],
+        onDelete = ForeignKey.RESTRICT
     )],
-    indices = [Index("competitionId"), Index("swimDate")]
+    indices = [Index("competitionId"), Index("swimDate"), Index("athleteId")]
 )
 data class SwimRecordEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -37,5 +40,6 @@ data class SwimRecordEntity(
     val poolLengthMeters: Int,
     val timeCentiseconds: Long,
     /** Historical snapshot; null means no qualification was achieved or available. */
-    val qualification: String?
+    val qualification: String?,
+    val athleteId: Long? = null
 )

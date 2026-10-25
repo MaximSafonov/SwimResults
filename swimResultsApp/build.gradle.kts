@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -11,6 +12,21 @@ plugins {
     alias(libs.plugins.androidxRoom)
 }
 
+// Only these four named values participate in SDK selection. Never print them.
+val vkIdKeys = listOf("VKIDClientID", "VKIDClientSecret", "VKIDRedirectHost", "VKIDRedirectScheme")
+val vkIdLocalProperties = Properties().apply {
+    val localFile = rootProject.file("local.properties")
+    if (localFile.isFile) localFile.inputStream().use { load(it) }
+}
+val vkIdConfiguration = vkIdKeys.associateWith { key ->
+    providers.gradleProperty(key).orNull ?: vkIdLocalProperties.getProperty(key).orEmpty()
+}
+val vkIdClientId = vkIdConfiguration.getValue("VKIDClientID")
+val vkIdConfigured = vkIdClientId.toIntOrNull()?.let { it > 0 && it.toString() == vkIdClientId } == true &&
+    vkIdConfiguration.getValue("VKIDClientSecret").isNotBlank() &&
+    vkIdConfiguration.getValue("VKIDRedirectHost") == "vk.ru" &&
+    vkIdConfiguration.getValue("VKIDRedirectScheme") == "vk$vkIdClientId"
+
 kotlin {
     androidTarget {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
@@ -19,9 +35,22 @@ kotlin {
         iosTarget.binaries.framework { baseName = "SwimResults"; isStatic = true }
     }
     sourceSets {
+        androidMain {
+            kotlin.srcDir(if (vkIdConfigured) "src/androidVkIdConfigured/kotlin" else "src/androidVkIdUnconfigured/kotlin")
+        }
+        androidInstrumentedTest.dependencies {
+            implementation(libs.kotlin.testJunit)
+            implementation(libs.androidx.testExt.junit)
+            implementation(libs.androidx.runner)
+            implementation(libs.androidx.core)
+        }
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            if (vkIdConfigured) {
+                implementation(libs.vkid.core)
+                implementation(libs.vkid.onetap)
+            }
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -75,6 +104,8 @@ android {
         applicationId = "com.msafonov.swimresults"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        if (vkIdConfigured) addManifestPlaceholders(vkIdConfiguration)
         versionCode = 10
         versionName = "2.6"
     }

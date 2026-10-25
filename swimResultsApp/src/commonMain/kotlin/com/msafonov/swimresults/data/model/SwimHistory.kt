@@ -15,7 +15,8 @@ data class RecordedSwim(
     val gender: Swimmer,
     val poolLengthMeters: Int,
     val timeCentiseconds: Long,
-    val qualification: SwimmingRank?
+    val qualification: SwimmingRank?,
+    val athleteId: Long? = null
 )
 
 data class SwimCompetitionGroup(

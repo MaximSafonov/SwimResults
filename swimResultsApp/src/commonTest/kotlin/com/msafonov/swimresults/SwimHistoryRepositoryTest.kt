@@ -45,10 +45,7 @@ class SwimHistoryRepositoryTest {
     @Test
     fun saveUsesExistingQualificationRulesAndStoresSnapshot() = runTest {
         val dao = InMemoryHistoryDao()
-        val repository = SwimHistoryRepository(
-            dao,
-            CheckResultRepository(RankTableStorage(), InMemoryStopWatchStorage())
-        )
+        val repository = historyTestRepository(dao)
         repository.save(
             NewSwimRecord(
                 competitionName = "Тестовый старт",
@@ -103,6 +100,7 @@ class SwimHistoryRepositoryTest {
         val id = seedHistory(dao)
         val other = dao.insertCompetition(CompetitionEntity(name = "Кубок города", date = "2026-05-01"))
         val repository = historyTestRepository(dao)
+        val visibleSibling = dao.insertSwim(dao.getSwim(id)!!.copy(id = 0, competitionId = other))
         repository.update(id, historyTestInput(), other)
         assertEquals(other, dao.getSwim(id)!!.competitionId)
         assertEquals("2026-06-13", dao.getSwim(id)!!.swimDate)
@@ -110,7 +108,7 @@ class SwimHistoryRepositoryTest {
         assertEquals("Новый старт", repository.load(id)!!.second.name)
         assertEquals("2026-06-13", repository.load(id)!!.second.date)
         assertEquals(3, dao.competitions.size)
-        assertEquals(listOf(id), dao.swims.map { it.id })
+        assertEquals(listOf(id, visibleSibling), dao.swims.map { it.id })
     }
 
     @Test
@@ -135,7 +133,7 @@ class SwimHistoryRepositoryTest {
         val tables = object : RankTable {
             override fun rankTable(type: RankTableType): List<SwimEvent> = throw CancellationException("cancel")
         }
-        val repository = SwimHistoryRepository(dao, CheckResultRepository(tables, InMemoryStopWatchStorage()))
+        val repository = historyTestRepository(dao, tables = tables)
         assertFailsWith<CancellationException> { repository.save(historyTestInput()) }
         assertTrue(dao.swims.isEmpty())
         assertTrue(dao.competitions.isEmpty())
@@ -144,6 +142,16 @@ class SwimHistoryRepositoryTest {
 
 // Reactive fake shared by the focused repository and ViewModel tests; no SQLite claims.
 internal class InMemoryHistoryDao : SwimHistoryDao() {
+    val profileDao = InMemoryProfileDao()
+    override suspend fun ownedLinkTarget(accountId: String, id: Long) = profileDao.ownedAthlete(accountId, id)
+    override suspend fun selectedSwims(ids: List<Long>) = swims.filter { it.id in ids }
+    override suspend fun assignUnassigned(ids: List<Long>, athleteId: Long): Int {
+        beforeWrite()
+        val rows = swims.filter { it.id in ids && it.athleteId == null }
+        rows.forEach { row -> swims[swims.indexOfFirst { it.id == row.id }] = row.copy(athleteId = athleteId) }
+        emitChanges()
+        return rows.size
+    }
     val competitions = mutableListOf<CompetitionEntity>()
     val swims = mutableListOf<SwimRecordEntity>()
     private val version = MutableStateFlow(0)
@@ -222,8 +230,14 @@ internal class InMemoryHistoryDao : SwimHistoryDao() {
     }
 }
 
-internal fun historyTestRepository(dao: SwimHistoryDao): SwimHistoryRepository = SwimHistoryRepository(
-    dao, CheckResultRepository(RankTableStorage(), InMemoryStopWatchStorage())
+internal fun historyTestRepository(
+    dao: SwimHistoryDao,
+    session: com.msafonov.swimresults.auth.AccountSession = com.msafonov.swimresults.auth.AccountSession(),
+    profileDao: InMemoryProfileDao = (dao as? InMemoryHistoryDao)?.profileDao ?: InMemoryProfileDao(),
+    tables: RankTable = RankTableStorage()
+): SwimHistoryRepository = SwimHistoryRepository(
+    dao, CheckResultRepository(tables, InMemoryStopWatchStorage()), session,
+    com.msafonov.swimresults.data.repository.ProfileRepository(profileDao, session)
 )
 
 internal fun historyTestInput() = NewSwimRecord(

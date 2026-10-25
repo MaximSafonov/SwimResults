@@ -44,7 +44,7 @@ internal object ResultDetailsTime {
         }
         val seconds = centiseconds / 100
         val fraction = kotlin.math.abs(centiseconds % 100).toString().padStart(2, '0')
-        return "$sign${kotlin.math.abs(seconds)}.$fraction с"
+        return "$sign${kotlin.math.abs(seconds)}.$fraction"
     }
 
     private val INPUT = Regex("^(?:(\\d+):)?(\\d{1,2})\\.(\\d{2})$")

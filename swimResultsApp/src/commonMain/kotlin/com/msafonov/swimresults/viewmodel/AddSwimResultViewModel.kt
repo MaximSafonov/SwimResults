@@ -2,6 +2,7 @@ package com.msafonov.swimresults.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.msafonov.swimresults.data.model.HistoryContext
 import com.msafonov.swimresults.data.model.SwimCompetition
 import com.msafonov.swimresults.data.model.Constants
 import com.msafonov.swimresults.data.model.PoolType
@@ -20,6 +21,7 @@ import kotlinx.datetime.todayIn
 import org.koin.core.annotation.KoinViewModel
 
 data class AddSwimResultUiState(
+    val context: HistoryContext? = null,
     val competitions: List<com.msafonov.swimresults.data.model.SwimCompetition> = emptyList(),
     val selectedCompetitionId: Long? = null,
     val originalCompetition: SwimCompetition? = null,
@@ -71,27 +73,44 @@ class AddSwimResultViewModel(private val repository: SwimHistoryRepository) : Vi
     private val _uiState = MutableStateFlow(AddSwimResultUiState(loading = true, ready = false))
     private var initialized = false
     val uiState = _uiState.asStateFlow()
+    val session = repository.session.state
 
     init {
         viewModelScope.launch {
-            repository.competitions.catch {
-                if (it is CancellationException) throw it
-                _uiState.value = _uiState.value.copy(error = AddSwimResultError.LoadCompetitions)
-            }.collect { _uiState.value = _uiState.value.copy(competitions = it) }
+            repository.session.state.collect { snapshot ->
+                val context = _uiState.value.context
+                if (context != null && context.session != snapshot) {
+                    _uiState.value = AddSwimResultUiState(ready = false, error = AddSwimResultError.NotFound)
+                }
+            }
         }
     }
 
     fun initialize(recordId: Long?) {
         if (initialized) return
         initialized = true
-        if (recordId == null) {
-            _uiState.value = _uiState.value.copy(loading = false, ready = true)
-            return
-        }
-        _uiState.value = _uiState.value.copy(recordId = recordId)
         viewModelScope.launch {
             try {
-                val loaded = repository.load(recordId)
+                val context = repository.currentContext()
+                if (!repository.session.isCurrent(context.session)) return@launch
+                _uiState.value = _uiState.value.copy(context = context, recordId = recordId)
+                launch {
+                    repository.competitions(context).catch {
+                        if (it is CancellationException) throw it
+                        if (repository.session.isCurrent(context.session)) _uiState.value = _uiState.value.copy(error = AddSwimResultError.LoadCompetitions)
+                    }.collect {
+                        if (repository.session.isCurrent(context.session)) _uiState.value = _uiState.value.copy(competitions = it)
+                    }
+                }
+                if (recordId == null) {
+                    val gender = repository.initialGender(context)
+                    if (!repository.session.isCurrent(context.session)) return@launch
+                    _uiState.value = _uiState.value.copy(loading = false, ready = context.available,
+                        swimmer = gender ?: _uiState.value.swimmer)
+                    return@launch
+                }
+                val loaded = repository.load(recordId, context)
+                if (!repository.session.isCurrent(context.session)) return@launch
                 if (loaded == null) {
                     _uiState.value = _uiState.value.copy(loading = false, error = AddSwimResultError.NotFound)
                 } else {
@@ -138,6 +157,8 @@ class AddSwimResultViewModel(private val repository: SwimHistoryRepository) : Vi
     fun save(onSaved: () -> Unit) {
         val state = _uiState.value
         if (state.saving || state.saved || !state.ready) return
+        val context = state.context ?: return
+        if (!repository.session.isCurrent(context.session)) return
         if (!state.canSave) {
             _uiState.value = state.copy(error = AddSwimResultError.Validation)
             return
@@ -154,8 +175,9 @@ class AddSwimResultViewModel(private val repository: SwimHistoryRepository) : Vi
                     pool = state.pool,
                     time = state.time
                 )
-                if (state.recordId == null) repository.save(input)
-                else repository.update(state.recordId, input, state.selectedCompetitionId)
+                if (state.recordId == null) repository.save(input, context)
+                else repository.update(state.recordId, input, state.selectedCompetitionId, context)
+                if (!repository.session.isCurrent(context.session)) return@launch
                 _uiState.value = _uiState.value.copy(saving = false, saved = true)
             } catch (cancelled: CancellationException) {
                 _uiState.value = _uiState.value.copy(saving = false)
@@ -172,7 +194,8 @@ class AddSwimResultViewModel(private val repository: SwimHistoryRepository) : Vi
     }
 
     private fun update(block: AddSwimResultUiState.() -> AddSwimResultUiState) {
-        if (_uiState.value.ready && !_uiState.value.saving && !_uiState.value.saved) {
+        if (_uiState.value.ready && !_uiState.value.saving && !_uiState.value.saved &&
+            _uiState.value.context?.let { repository.session.isCurrent(it.session) } == true) {
             _uiState.value = _uiState.value.block()
         }
     }

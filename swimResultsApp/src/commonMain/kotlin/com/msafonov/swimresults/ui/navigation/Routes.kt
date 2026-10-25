@@ -3,13 +3,7 @@ package com.msafonov.swimresults.ui.navigation
 
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.getString
-import swimresults.swimresultsapp.generated.resources.Res
-import swimresults.swimresultsapp.generated.resources.resultScreenTitle
-import swimresults.swimresultsapp.generated.resources.settingsScreenTitle
-import swimresults.swimresultsapp.generated.resources.stopWatchScreenTitle
-import swimresults.swimresultsapp.generated.resources.historyScreenTitle
-import swimresults.swimresultsapp.generated.resources.addSwimTitle
-import swimresults.swimresultsapp.generated.resources.editSwimTitle
+import swimresults.swimresultsapp.generated.resources.*
 
 
 @Serializable
@@ -41,6 +35,22 @@ sealed class Screen() {
         override val route: String = "editSwimResult/{recordId}"
         fun route(recordId: Long): String = "editSwimResult/$recordId"
         override suspend fun title(): String = getString(Res.string.editSwimTitle)
+    }
+    @Serializable
+    data object Profile : Screen() {
+        override val route = "profile"
+        override suspend fun title() = getString(Res.string.profileScreenTitle)
+    }
+    @Serializable
+    data object AddAthlete : Screen() {
+        override val route = "addAthlete"
+        override suspend fun title() = getString(Res.string.athleteNewTitle)
+    }
+    @Serializable
+    data object EditAthlete : Screen() {
+        override val route = "editAthlete/{athleteId}"
+        fun route(id: Long) = "editAthlete/$id"
+        override suspend fun title() = getString(Res.string.athleteEditTitle)
     }
     @Serializable
     data object Settings : Screen() {
