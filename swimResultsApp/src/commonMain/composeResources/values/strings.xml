@@ -14,6 +14,9 @@
     <string name="historyPool">Бассейн</string>
     <string name="historyTime">Время</string>
     <string name="historyQualification">Разряд</string>
+    <string name="historyFina">FINA</string>
+    <string name="historyFinaUnavailable">—</string>
+    <string name="historyDistanceValue">%1$d м %2$s</string>
     <string name="historyAdd">Добавить заплыв</string>
     <string name="historyNoQualification">Без разряда</string>
     <string name="competitionLabel">Соревнование</string>
@@ -28,6 +31,8 @@
     <string name="swimSaveFailure">Не удалось сохранить заплыв. Попробуйте ещё раз.</string>
     <string name="swimCompetitionsLoadError">Не удалось загрузить список соревнований.</string>
     <string name="dateFormatError">Введите дату в формате ДД.ММ.ГГГГ.</string>
+    <string name="datePickerOpen">Выбрать дату</string>
+    <string name="datePickerConfirm">Готово</string>
     <string name="timeFormatError">Введите время, например 01:23.45.</string>
     <string name="distanceTitle">Дистанция</string>
     <string name="shortWaterTitle">Короткая вода</string>
@@ -43,6 +48,7 @@
 
     <string name="showResult">Показать результат</string>
     <string name="checkResult">Проверить результат</string>
+    <string name="checkResultShort">Проверить</string>
     <string name="distanceResults">Разряды по дистанции</string>
 
     <string name="betterThanCurrent">Лучше текущего разряда на: \n%1$s</string>
@@ -77,6 +83,8 @@
     <string name="clearTime">Очистить время</string>
     <string name="timeInputLabel">Время (ММ:СС.МС)</string>
     <string name="checkedTime">Результат: %1$s</string>
+    <string name="finaPoints">FINA: %1$d</string>
+    <string name="checkedTimeWithFina">Результат: %1$s   FINA: %2$d</string>
     <string name="qualificationUnknown">Не удалось определить разряд.</string>
     <string name="noQualification">Разряд не выполнен</string>
     <string name="evskTableTitle">Сравнение с нормативами ЕВСК</string>
@@ -131,4 +139,5 @@
     <string name="swimRecordLoading">Загрузка заплыва…</string>
     <string name="swimRecordNotFound">Заплыв больше не существует. Вернитесь в историю.</string>
     <string name="swimRecordLoadError">Не удалось загрузить заплыв. Откройте его из истории ещё раз.</string>
+    <string name="worldAquaticsPoints2026">World Aquatics (FINA), 2026: %1$d очков</string>
 </resources>

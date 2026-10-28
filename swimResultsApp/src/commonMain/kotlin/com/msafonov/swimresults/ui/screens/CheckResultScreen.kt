@@ -1,5 +1,6 @@
 package com.msafonov.swimresults.ui.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
@@ -168,27 +170,36 @@ internal fun CheckResultContent(
             }
             StandardsStatus.Ready -> QualificationGrid(state.standards)
         }
-        val expanded = stringResource(if (state.resultExpanded) Res.string.sectionExpanded else Res.string.sectionCollapsed)
-        TextButton(
-            onClick = onToggleResult,
-            modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp)
-                .semantics { stateDescription = expanded }
-        ) {
-            Text(stringResource(Res.string.checkOwnResult), color = Theme.colors.textPrimary)
-        }
-        if (state.resultExpanded) {
-            TimerInput(value = state.timerInput, onValueChange = onInput)
-            Button(
-                onClick = {
-                    keyboardController?.hide()
-                    focusManager.clearFocus()
-                    onCheck()
-                },
-                enabled = state.canCheckResult,
-                modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
-                colors = SwimComponentDefaults.primaryButtonColors()
-            ) {
-                Text(stringResource(Res.string.checkResult))
+        AnimatedContent(targetState = state.resultExpanded, label = "result input") { expanded ->
+            if (!expanded) {
+                val collapsed = stringResource(Res.string.sectionCollapsed)
+                TextButton(
+                    onClick = onToggleResult,
+                    modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp)
+                        .semantics { stateDescription = collapsed }
+                ) {
+                    Text(stringResource(Res.string.checkOwnResult), color = Theme.colors.textPrimary)
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TimerInput(value = state.timerInput, onValueChange = onInput, modifier = Modifier.weight(1f))
+                    Button(
+                        onClick = {
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                            onCheck()
+                        },
+                        enabled = state.canCheckResult,
+                        modifier = Modifier.sizeIn(minHeight = 48.dp),
+                        colors = SwimComponentDefaults.primaryButtonColors()
+                    ) {
+                        Text(stringResource(Res.string.checkResultShort))
+                    }
+                }
             }
         }
     }

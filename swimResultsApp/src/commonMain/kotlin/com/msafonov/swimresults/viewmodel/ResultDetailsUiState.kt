@@ -6,6 +6,7 @@ import com.msafonov.swimresults.data.model.SwimEvent
 import com.msafonov.swimresults.data.model.SwimStyle
 import com.msafonov.swimresults.data.model.Swimmer
 import com.msafonov.swimresults.data.model.SwimmingRank
+import com.msafonov.swimresults.data.model.WorldAquaticsPoints
 import kotlin.time.Duration
 
 enum class ResultComparisonStatus { Available, NoQualification, NoResult, StandardsUnavailable, UnsupportedTime, MissingAchievedStandard }
@@ -24,7 +25,8 @@ data class ResultDetailsUiState(
     val input: String,
     val checkedResult: CheckedResult?,
     val comparisonStatus: ResultComparisonStatus,
-    val rows: List<ResultStandardRow>
+    val rows: List<ResultStandardRow>,
+    val worldAquaticsPoints: Int? = null
 )
 
 internal val swimmingRankHierarchy = listOf(
@@ -46,7 +48,10 @@ internal fun buildResultDetails(
     checked: CheckedResult?
 ): ResultDetailsUiState {
     fun state(status: ResultComparisonStatus, rows: List<ResultStandardRow> = emptyList()) =
-        ResultDetailsUiState(filters.distance, filters.swimStyle, filters.swimmer, filters.poolType, input, checked, status, rows)
+        ResultDetailsUiState(filters.distance, filters.swimStyle, filters.swimmer, filters.poolType, input, checked, status, rows,
+            if (checked == null) null else ResultDetailsTime.inputCentiseconds(input)?.let {
+                WorldAquaticsPoints.score(filters.poolType, filters.swimmer, filters.swimStyle, filters.distance, it)
+            })
     if (checked == null) return state(ResultComparisonStatus.NoResult)
     val resultTime = ResultDetailsTime.inputCentiseconds(input)
         ?: return state(ResultComparisonStatus.UnsupportedTime)

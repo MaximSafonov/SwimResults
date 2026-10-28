@@ -43,11 +43,11 @@ fun QualificationGrid(
                     modifier = Modifier.background(Theme.colors.backGround2, Theme.shapes.medium)
                         .clearAndSetSemantics {
                             contentDescription = "${standard.rank.text}, ${time ?: missing}"
-                        }.padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                        }.padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(standard.rank.text, color = Theme.colors.textPrimary, fontWeight = FontWeight.Medium)
-                    Text(time ?: "—", color = Theme.colors.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                    Text(standard.rank.text, color = Theme.colors.primary, fontWeight = FontWeight.Medium)
+                    Text(time ?: "—", color = Theme.colors.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

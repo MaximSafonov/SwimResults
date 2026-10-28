@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -77,8 +78,15 @@ private fun ResultDetailsContent(details: ResultDetailsUiState) {
                     fontSize = 16.sp,
                 )
 
-                Text(stringResource(Res.string.checkedTime, details.input), color = Theme.colors.textPrimary,
-                    fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(Res.string.checkedTime, details.input), Modifier.weight(1f),
+                        color = Theme.colors.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                    details.worldAquaticsPoints?.let { points ->
+                        Text(stringResource(Res.string.finaPoints, points), Modifier.weight(1f),
+                            color = Theme.colors.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.End)
+                    }
+                }
                 val achieved = details.checkedResult?.currentRank
                 val qualificationName = when {
                     details.checkedResult == null -> stringResource(Res.string.qualificationUnknown)
@@ -93,8 +101,6 @@ private fun ResultDetailsContent(details: ResultDetailsUiState) {
                     modifier = Modifier.semantics { heading() }
                 )
 
-                Text(stringResource(Res.string.evskTableTitle), color = Theme.colors.textPrimary,
-                    fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() })
                 when (details.comparisonStatus) {
                     ResultComparisonStatus.NoResult -> ComparisonMessage(Res.string.qualificationUnknown)
                     ResultComparisonStatus.StandardsUnavailable -> ComparisonMessage(Res.string.standardsComparisonUnavailable)
@@ -199,7 +205,7 @@ private fun ResultDetailsPreview() {
         val details = ResultDetailsUiState(100, com.msafonov.swimresults.data.model.SwimStyle.FREESTYLE,
             com.msafonov.swimresults.data.model.Swimmer.Women, com.msafonov.swimresults.data.model.PoolType.Short,
             "1:22.00", com.msafonov.swimresults.data.model.CheckedResult(rank, null, null, null),
-            ResultComparisonStatus.Available, listOf(ResultStandardRow(rank, time, 200)))
+            ResultComparisonStatus.Available, listOf(ResultStandardRow(rank, time, 200)), worldAquaticsPoints = 500)
         ResultDetailsContent(details)
     }
 }

@@ -30,10 +30,11 @@ import swimresults.swimresultsapp.generated.resources.timeInputLabel
 @Composable
 fun TimerInput(
     value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit
+    onValueChange: (TextFieldValue) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     TextField(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
         textStyle = TextStyle(
             color = Theme.colors.textPrimary,
             fontWeight = FontWeight.Medium,

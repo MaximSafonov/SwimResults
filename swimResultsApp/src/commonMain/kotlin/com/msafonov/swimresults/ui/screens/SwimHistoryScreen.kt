@@ -41,6 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.msafonov.swimresults.data.model.SwimCompetitionGroup
+import com.msafonov.swimresults.data.model.PoolType
+import com.msafonov.swimresults.data.model.SwimStyle
+import com.msafonov.swimresults.data.model.WorldAquaticsPoints
 import com.msafonov.swimresults.ui.theme.Theme
 import com.msafonov.swimresults.viewmodel.SwimHistoryViewModel
 import org.jetbrains.compose.resources.stringResource
@@ -59,6 +62,14 @@ import swimresults.swimresultsapp.generated.resources.historyNoQualification
 import swimresults.swimresultsapp.generated.resources.historyPool
 import swimresults.swimresultsapp.generated.resources.historyQualification
 import swimresults.swimresultsapp.generated.resources.historyTime
+import swimresults.swimresultsapp.generated.resources.historyFina
+import swimresults.swimresultsapp.generated.resources.historyFinaUnavailable
+import swimresults.swimresultsapp.generated.resources.historyDistanceValue
+import swimresults.swimresultsapp.generated.resources.styleFreestyleShort
+import swimresults.swimresultsapp.generated.resources.styleBackstrokeShort
+import swimresults.swimresultsapp.generated.resources.styleBreaststrokeShort
+import swimresults.swimresultsapp.generated.resources.styleButterflyShort
+import swimresults.swimresultsapp.generated.resources.styleMedleyShort
 import swimresults.swimresultsapp.generated.resources.shortWaterLength
 import swimresults.swimresultsapp.generated.resources.longWaterLength
 
@@ -124,6 +135,21 @@ fun SwimHistoryScreen(
                         items(group.swims, key = { "swim-${it.id}" }) { swim ->
                             val shareText = historyShareText(group.competition, swim)
                             val available = swim.id !in state.deletingIds && pendingShare == null
+                            val style = stringResource(when (swim.style) {
+                                SwimStyle.FREESTYLE -> Res.string.styleFreestyleShort
+                                SwimStyle.BACKSTROKE -> Res.string.styleBackstrokeShort
+                                SwimStyle.BREASTSTROKE -> Res.string.styleBreaststrokeShort
+                                SwimStyle.BUTTERFLY -> Res.string.styleButterflyShort
+                                SwimStyle.MEDLEY -> Res.string.styleMedleyShort
+                            })
+                            val pool = when (swim.poolLengthMeters) {
+                                25 -> PoolType.Short
+                                50 -> PoolType.Long
+                                else -> null
+                            }
+                            val fina = pool?.let {
+                                WorldAquaticsPoints.score(it, swim.gender, swim.style, swim.distanceMeters, swim.timeCentiseconds)
+                            }
                             Box(Modifier.fillMaxWidth()) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth().horizontalScroll(horizontalScrollState)
@@ -132,10 +158,11 @@ fun SwimHistoryScreen(
                                         .padding(vertical = 10.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Cell("${swim.distanceMeters} м ${swim.style.text}", 176.dp)
-                                    Cell(stringResource(if (swim.poolLengthMeters == 25) Res.string.shortWaterLength else Res.string.longWaterLength), 72.dp)
-                                    Cell(formatTime(swim.timeCentiseconds), 92.dp)
-                                    Cell(swim.qualification?.text ?: stringResource(Res.string.historyNoQualification), 120.dp)
+                                    Cell(stringResource(Res.string.historyDistanceValue, swim.distanceMeters, style), 100.dp)
+                                    Cell(stringResource(if (swim.poolLengthMeters == 25) Res.string.shortWaterLength else Res.string.longWaterLength), 64.dp)
+                                    Cell(formatTime(swim.timeCentiseconds), 80.dp)
+                                    Cell(swim.qualification?.text ?: stringResource(Res.string.historyNoQualification), 100.dp)
+                                    Cell(fina?.toString() ?: stringResource(Res.string.historyFinaUnavailable), 64.dp)
                                 }
                                 DropdownMenu(
                                     expanded = menuRecordId == swim.id && available,
@@ -175,10 +202,11 @@ private fun HistoryTableHeader(horizontalScrollState: androidx.compose.foundatio
         Modifier.fillMaxWidth().horizontalScroll(horizontalScrollState).padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        HeaderCell(stringResource(Res.string.historyDistance), 176.dp)
-        HeaderCell(stringResource(Res.string.historyPool), 72.dp)
-        HeaderCell(stringResource(Res.string.historyTime), 92.dp)
-        HeaderCell(stringResource(Res.string.historyQualification), 120.dp)
+        HeaderCell(stringResource(Res.string.historyDistance), 100.dp)
+        HeaderCell(stringResource(Res.string.historyPool), 64.dp)
+        HeaderCell(stringResource(Res.string.historyTime), 80.dp)
+        HeaderCell(stringResource(Res.string.historyQualification), 100.dp)
+        HeaderCell(stringResource(Res.string.historyFina), 64.dp)
     }
 }
 

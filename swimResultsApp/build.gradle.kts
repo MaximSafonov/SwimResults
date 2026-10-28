@@ -75,8 +75,8 @@ android {
         applicationId = "com.msafonov.swimresults"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 10
-        versionName = "2.6"
+        versionCode = 11
+        versionName = "2.7"
     }
     packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
     buildTypes { getByName("release") { isMinifyEnabled = false } }

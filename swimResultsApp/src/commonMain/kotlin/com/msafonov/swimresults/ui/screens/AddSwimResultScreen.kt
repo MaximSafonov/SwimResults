@@ -17,6 +17,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -26,10 +30,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -63,6 +69,8 @@ import swimresults.swimresultsapp.generated.resources.competitionLabel
 import swimresults.swimresultsapp.generated.resources.competitionNameLabel
 import swimresults.swimresultsapp.generated.resources.competitionNew
 import swimresults.swimresultsapp.generated.resources.dateFormatError
+import swimresults.swimresultsapp.generated.resources.datePickerConfirm
+import swimresults.swimresultsapp.generated.resources.datePickerOpen
 import swimresults.swimresultsapp.generated.resources.distanceMeters
 import swimresults.swimresultsapp.generated.resources.distanceTitle
 import swimresults.swimresultsapp.generated.resources.genderGroup
@@ -82,6 +90,11 @@ import swimresults.swimresultsapp.generated.resources.styleBackstroke
 import swimresults.swimresultsapp.generated.resources.styleBreaststroke
 import swimresults.swimresultsapp.generated.resources.styleButterfly
 import swimresults.swimresultsapp.generated.resources.styleMedley
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun AddSwimResultScreen(
@@ -255,9 +268,18 @@ private fun SelectionGroup(title: String, modifier: Modifier = Modifier, content
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DateField(value: String, label: String, onChange: (String) -> Unit) {
     val display = formatDate(value)
+    var showDatePicker by remember { mutableStateOf(false) }
+    val selectedDate = remember(value) { runCatching { LocalDate.parse(value) }.getOrNull() }
+    val datePickerState = key(value) {
+        rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate?.atStartOfDayIn(TimeZone.UTC)?.toEpochMilliseconds()
+        )
+    }
+    val datePickerOpenLabel = stringResource(Res.string.datePickerOpen)
     OutlinedTextField(
         value = display,
         onValueChange = { onChange(parseDate(it)) },
@@ -267,8 +289,40 @@ private fun DateField(value: String, label: String, onChange: (String) -> Unit) 
         label = { Text(label) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
+        trailingIcon = {
+            IconButton(
+                onClick = { showDatePicker = true },
+                modifier = Modifier.semantics { contentDescription = datePickerOpenLabel }
+            ) {
+                Text("▦")
+            }
+        },
         supportingText = { if (display.isNotEmpty() && !isDate(display)) Text(stringResource(Res.string.dateFormatError)) }
     )
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val date = Instant.fromEpochMilliseconds(millis)
+                            .toLocalDateTime(TimeZone.UTC).date
+                        onChange(date.toString())
+                    }
+                    showDatePicker = false
+                }) {
+                    Text(stringResource(Res.string.datePickerConfirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(Res.string.cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 }
 
 private fun formatDate(value: String): String {

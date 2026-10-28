@@ -20,7 +20,7 @@ import kotlinx.datetime.todayIn
 import org.koin.core.annotation.KoinViewModel
 
 data class AddSwimResultUiState(
-    val competitions: List<com.msafonov.swimresults.data.model.SwimCompetition> = emptyList(),
+    val competitions: List<SwimCompetition> = emptyList(),
     val selectedCompetitionId: Long? = null,
     val originalCompetition: SwimCompetition? = null,
     val recordId: Long? = null,
@@ -44,7 +44,7 @@ data class AddSwimResultUiState(
             else -> Constants.COMMON_LIST
         }
 
-    val selectedCompetition: com.msafonov.swimresults.data.model.SwimCompetition?
+    val selectedCompetition: SwimCompetition?
         get() = competitions.firstOrNull { it.id == selectedCompetitionId }
             ?: originalCompetition?.takeIf { it.id == selectedCompetitionId }
 
