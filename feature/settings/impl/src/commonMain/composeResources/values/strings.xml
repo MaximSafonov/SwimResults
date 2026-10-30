@@ -1,0 +1,4 @@
+<resources>
+    <string name="dartTheme">Тёмная тема</string>
+    <string name="lightTheme">Светлая тема</string>
+</resources>

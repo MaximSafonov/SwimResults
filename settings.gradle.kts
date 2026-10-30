@@ -30,3 +30,14 @@ dependencyResolutionManagement {
 }
 
 include(":swimResultsApp")
+include(":core:common")
+include(":core:di")
+include(":core:ui")
+include(":feature:settings:api")
+include(":feature:settings:impl")
+include(":feature:stopwatch:api")
+include(":feature:stopwatch:impl")
+include(":feature:checkresult:api")
+include(":feature:checkresult:impl")
+include(":feature:history:api")
+include(":feature:history:impl")

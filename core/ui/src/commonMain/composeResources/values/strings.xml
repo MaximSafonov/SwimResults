@@ -1,0 +1,4 @@
+<resources>
+    <string name="clearTime">Очистить время</string>
+    <string name="timeInputLabel">Время (ММ:СС.МС)</string>
+</resources>

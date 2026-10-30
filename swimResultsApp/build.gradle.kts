@@ -7,8 +7,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.serialization)
     alias(libs.plugins.koin)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.androidxRoom)
 }
 
 kotlin {
@@ -24,6 +22,17 @@ kotlin {
             implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
+            implementation(projects.core.common)
+            implementation(projects.core.di)
+            implementation(projects.core.ui)
+            implementation(projects.feature.settings.api)
+            implementation(projects.feature.settings.impl)
+            implementation(projects.feature.stopwatch.api)
+            implementation(projects.feature.stopwatch.impl)
+            implementation(projects.feature.checkresult.api)
+            implementation(projects.feature.checkresult.impl)
+            implementation(projects.feature.history.api)
+            implementation(projects.feature.history.impl)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -54,12 +63,6 @@ kotlin {
     koinCompiler { userLogs = true }
 }
 
-room { schemaDirectory("$projectDir/schemas") }
-dependencies {
-    add("kspAndroid", libs.androidx.room.compiler)
-    add("kspIosArm64", libs.androidx.room.compiler)
-    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
-}
 
 android {
     namespace = "com.msafonov.swimresults"

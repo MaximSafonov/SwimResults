@@ -1,0 +1,8 @@
+<resources>
+    <string name="start">Старт</string>
+    <string name="pause">Пауза</string>
+    <string name="lap">Поворот</string>
+    <string name="lapCurrent">Бассейн %1$s : %2$s</string>
+    <string name="reset">Сброс</string>
+    <string name="showResult">Показать результат</string>
+</resources>
